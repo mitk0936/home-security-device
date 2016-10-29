@@ -1,18 +1,19 @@
 {
 	"wifi": {
-		"ssid": "******",
-		"password": "**********"
+		"ssid": "********",
+		"password": "********"
 	},
 	"device": {
-		"id": "**********",
-		"user": "**********",
-		"password": "**********"
+		"id": "********",
+		"user": "********",
+		"password": "********"
 	},
 	"mqtt": {
-		"address": "**********",
+		"address": "********",
 		"port": 10247,
 		"keepAliveInterval": 20,
-		"lwtTopic": "home-security",
-		"motionTopic": "home-security"
+		"connectivityTopic": "/connectivity",
+		"motionTopic": "/motion",
+		"tempHumTopic": "/temp-hum"
 	}
 }

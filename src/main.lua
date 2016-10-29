@@ -5,6 +5,15 @@ local pins = {
 	negativeLed = 3
 };
 
+local createMessage = function (error, value)
+	local message = {
+		error = error,
+		value = value
+	}
+
+	return cjson.encode(message)
+end
+
 local mqttInstance = dofile("mqtt_client.lua");
 
 local initSensors = function (configMqtt)
@@ -13,7 +22,9 @@ local initSensors = function (configMqtt)
 	gpio.mode(pins.motion, gpio.INPUT);
 	gpio.trig(pins.motion, "both", function (level)
 		-- motion sensor watcher
-		mqttInstance.publish(configMqtt.motionTopic, level)
+		mqttInstance.publish(configMqtt.motionTopic, createMessage(nil, {
+			motion = level	
+		}))
 	end)
 
 	-- init humidity and temperature
@@ -21,11 +32,14 @@ local initSensors = function (configMqtt)
 		status, temp, humi, temp_dec, humi_dec = dht.read(pins.dht)
 
 		if status == dht.OK then
-			mqttInstance.publish(configMqtt.motionTopic, "Temp: "..temp..", Humidity: "..humi)
+			mqttInstance.publish(configMqtt.tempHumTopic, createMessage(nil, {
+				temperature = temp,
+				humidity = humi	
+			}))
 		elseif status == dht.ERROR_CHECKSUM then
-			print( "DHT Checksum error." )
+			mqttInstance.publish(configMqtt.tempHumTopic, createMessage("DHT error checksum"))
 		elseif status == dht.ERROR_TIMEOUT then
-			print( "DHT timed out." )
+			mqttInstance.publish(configMqtt.tempHumTopic, createMessage("DHT error timeout"))
 		end
 	end)
 
@@ -52,14 +66,14 @@ end
 
 local initApp = function (configDevice, configMqtt)
 	-- wifi connection is ready
-	setNotification(true);
+	setNotification(true)
 
 	-- init mqtt
-	mqttInstance.init(configDevice, configMqtt, function (client)
+	mqttInstance.init(configDevice, configMqtt, createMessage, function (client)
 		print("MQTT connection established");
 		setNotification(true);
 		
-		mqttInstance.publish(configMqtt.motionTopic, "online");
+		mqttInstance.publish(configMqtt.connectivityTopic, createMessage(nil, "online"));
 		initSensors(configMqtt);
 
 	end, function (client)
@@ -75,7 +89,7 @@ local initApp = function (configDevice, configMqtt)
 		-- on message sent fail
 		setNotification(false);
 		print("Мessage sent failed")
-	end);
+	end)
 end
 
 return {
