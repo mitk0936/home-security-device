@@ -1,0 +1,18 @@
+{
+	"wifi": {
+		"ssid": "******",
+		"password": "**********"
+	},
+	"device": {
+		"id": "**********",
+		"user": "**********",
+		"password": "**********"
+	},
+	"mqtt": {
+		"address": "**********",
+		"port": 10247,
+		"keepAliveInterval": 20,
+		"lwtTopic": "home-security",
+		"motionTopic": "home-security"
+	}
+}

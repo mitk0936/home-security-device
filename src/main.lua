@@ -1,89 +1,80 @@
-local configMqtt = {
-	deviceId = "dev-123456",
-	user = "test-device",
-	password = "123456",
-	serverAddress = "m21.cloudmqtt.com",
-	port = 10247,
-	keepAliveInterval = 20,
-	lwtTopic = "/home-security",
-	lwtMessage = "offline"
-};
-
-local configSensors = {
-	motionPin = 5,
-	motionTopic = "/home-security"
-};
-
-local configNotifications = {
-	positiveLedPin = 4,
-	negativeLedPin = 3
+local pins = {
+	motion = 5,
+	dht = 2,
+	positiveLed = 4,
+	negativeLed = 3
 };
 
 local mqttInstance = dofile("mqtt_client.lua");
 
-local initSensors = function ()
-	print("starting sensors");
+local initSensors = function (configMqtt)
 
 	-- init motion detection
-	gpio.mode(configSensors.motionPin, gpio.INPUT);
-	-- motion sensor watcher
-	gpio.trig(configSensors.motionPin, "both", function (level)
-		print('Motion: '..level);
-
-		mqttInstance.publish(configSensors.motionTopic, level);
-		mqttInstance.publish(configSensors.motionTopic, "next");
-	end);
+	gpio.mode(pins.motion, gpio.INPUT);
+	gpio.trig(pins.motion, "both", function (level)
+		-- motion sensor watcher
+		mqttInstance.publish(configMqtt.motionTopic, level)
+	end)
 
 	-- init humidity and temperature
+	tmr.alarm(1, 30000, 1, function()
+		status, temp, humi, temp_dec, humi_dec = dht.read(pins.dht)
+
+		if status == dht.OK then
+			mqttInstance.publish(configMqtt.motionTopic, "Temp: "..temp..", Humidity: "..humi)
+		elseif status == dht.ERROR_CHECKSUM then
+			print( "DHT Checksum error." )
+		elseif status == dht.ERROR_TIMEOUT then
+			print( "DHT timed out." )
+		end
+	end)
 
 	-- init smoke detection
 end
 
 local setNotification = function (isSuccess)
-	print("notification");
-	print(isSuccess);
-
 	if ( isSuccess ) then
-		gpio.write(configNotifications.positiveLedPin, gpio.HIGH);
-		gpio.write(configNotifications.negativeLedPin, gpio.LOW);
+		gpio.write(pins.positiveLed, gpio.HIGH);
+		gpio.write(pins.negativeLed, gpio.LOW);
 	else
-		gpio.write(configNotifications.positiveLedPin, gpio.LOW);
-		gpio.write(configNotifications.negativeLedPin, gpio.HIGH);
+		gpio.write(pins.positiveLed, gpio.LOW);
+		gpio.write(pins.negativeLed, gpio.HIGH);
 	end
 end
 
 local initNotifications = function ()
 	-- init led notifications
-	gpio.mode(configNotifications.positiveLedPin, gpio.OUTPUT);
-	gpio.mode(configNotifications.negativeLedPin, gpio.OUTPUT);
-
+	gpio.mode(pins.positiveLed, gpio.OUTPUT);
+	gpio.mode(pins.negativeLed, gpio.OUTPUT);
 	-- by default we do not have a connection
 	setNotification(false)
 end
 
-local initApp = function ()
+local initApp = function (configDevice, configMqtt)
 	-- wifi connection is ready
 	setNotification(true);
 
 	-- init mqtt
-	mqttInstance.init(configMqtt, function (client)
-		print("mqtt connection established");
+	mqttInstance.init(configDevice, configMqtt, function (client)
+		print("MQTT connection established");
 		setNotification(true);
 		
-		mqttInstance.publish(configSensors.motionTopic, "online");
-		initSensors();
+		mqttInstance.publish(configMqtt.motionTopic, "online");
+		initSensors(configMqtt);
 
 	end, function (client)
-		print("mqtt connection lost");
+		print("MQTT connection lost");
 		setNotification(false);
 		tmr.delay(3000);
 		node.restart();
 	end, function (topic, payload)
-		-- on message sent
+		-- on message sent success
+		print("Message sent ok");
 		setNotification(true);
 	end, function (topic, payload)
-		-- on message fail
+		-- on message sent fail
 		setNotification(false);
+		print("Мessage sent failed")
 	end);
 end
 
