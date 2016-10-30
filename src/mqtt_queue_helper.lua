@@ -1,6 +1,4 @@
-------------------------------------------------------------------------------
 -- MQTT queuing publish helper (modified)
---
 -- LICENSE: http://opensource.org/licenses/MIT
 -- Vladimir Dronnikov <dronnikov@gmail.com>
 do
@@ -14,20 +12,17 @@ do
 				local tp = table.remove(queue, 1)
 
 				if pcall(function()
-
 					client:publish(tp[1], tp[2], tp[3], tp[4], function ()
 						on_message_success(tp[1], tp[2])
 						send()
 					end)
-
 				end) then
 					-- success callback is called from client:publish callback
 					-- on_message_success(tp[1], tp[2])
 					-- send()
 				else
 					on_message_fail(tp[1], tp[2]);
-					-- continue the queue
-					send();
+					send(); -- continue the queue
 				end
 				
 			else

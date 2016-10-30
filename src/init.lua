@@ -1,12 +1,12 @@
--- reqiured modules
-mqtt = require("mqtt")
-gpio = require("gpio")
-node = require("node")
-wifi = require("wifi")
-tmr = require("tmr")
-dht = require("dht")
-file = require("file")
+-- Reqiured Lua firmware modules
+file  = require("file")
 cjson = require("cjson")
+tmr   = require("tmr")
+wifi  = require("wifi")
+gpio  = require("gpio")
+mqtt  = require("mqtt")
+dht   = require("dht")
+node  = require("node")
 
 dofile("utils.lua") -- global utils functions
 
@@ -18,7 +18,7 @@ if file.open("config.json") then
 	local config = cjson.decode(file.read())
 	file.close()
 
-	-- utils.print_table(config)
+	-- print_table(config)
 
 	wifi.setmode(wifi.STATION)
 	wifi.sta.config(config.wifi.ssid, config.wifi.password)

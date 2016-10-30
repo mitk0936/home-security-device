@@ -1,3 +1,4 @@
+-- Local props
 local pins = {
 	motion = 5,
 	dht = 2,
@@ -34,7 +35,7 @@ local initSensors = function (configMqtt)
 	end)
 
 	-- init humidity and temperature
-	tmr.alarm(1, 10000, 1, function()
+	tmr.alarm(1, 30000, 1, function()
 		status, temp, humi = dht.read(pins.dht)
 
 		if status == dht.OK then
@@ -49,7 +50,7 @@ local initSensors = function (configMqtt)
 		end
 	end)
 
-	-- init smoke detection
+	-- TODO: init smoke detection
 end
 
 local setNotification = function (isSuccess)
@@ -65,22 +66,16 @@ end
 local initNotifications = function ()
 	gpio.mode(pins.positiveLed, gpio.OUTPUT)
 	gpio.mode(pins.negativeLed, gpio.OUTPUT)
-	-- by default turn on the negative led
-	setNotification(false)
+	setNotification(false) -- by default turn on the negative led
 end
 
 local initApp = function (configDevice, configMqtt)
-	-- wifi connection is ready
-	setNotification(true)
-
 	-- init mqtt
 	mqttInstance.init(configDevice, configMqtt, topics, createMessage, function (client)
 		print("MQTT connection established")
 		setNotification(true)
-		
 		mqttInstance.publish(topics.connectivity, createMessage(nil, "online"))
 		initSensors()
-
 	end, function (client)
 		print("MQTT connection lost")
 		setNotification(false)
@@ -96,6 +91,7 @@ local initApp = function (configDevice, configMqtt)
 	end)
 end
 
+-- Exposed methods
 return {
 	initNotifications = initNotifications,
 	initApp = initApp
