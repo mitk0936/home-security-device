@@ -10,10 +10,6 @@
 	},
 	"mqtt": {
 		"address": "********",
-		"port": 10247,
-		"keepAliveInterval": 20,
-		"connectivityTopic": "/connectivity",
-		"motionTopic": "/motion",
-		"tempHumTopic": "/temp-hum"
+		"port": 10247
 	}
 }

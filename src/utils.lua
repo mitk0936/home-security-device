@@ -1,5 +1,5 @@
 print_table = function (table, space)
-	space = space or "";
+	space = space or ""
 	
 	for key, value in pairs(table) do
 		local obj_type = type(value)
@@ -22,7 +22,3 @@ print_table = function (table, space)
 		end
 	end
 end
-
-return {
-	print_table = print_table
-}
