@@ -29,7 +29,7 @@ end
 
 local publish = function (topic, payload)
 	-- put the deviceId as a prefix to all topics
-	publisher(deviceId..topic, payload, 1, 1)
+	publisher(deviceId..topic, payload, 2, 1)
 end
 
 -- Exposed methods

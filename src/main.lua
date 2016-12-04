@@ -29,6 +29,7 @@ local initSensors = function (configMqtt)
 	-- init motion detection
 	gpio.mode(pins.motion, gpio.INPUT)
 	gpio.trig(pins.motion, "both", function (level) -- motion sensor watcher
+		print("Motion: "..level)
 		mqttInstance.publish(topics.motion, createMessage(nil, {
 			motion = level	
 		}))
@@ -54,13 +55,8 @@ local initSensors = function (configMqtt)
 end
 
 local setNotification = function (isSuccess)
-	if ( isSuccess ) then
-		gpio.write(pins.negativeLed, gpio.LOW)
-		gpio.write(pins.positiveLed, gpio.HIGH)
-	else
-		gpio.write(pins.positiveLed, gpio.LOW)
-		gpio.write(pins.negativeLed, gpio.HIGH)
-	end
+	gpio.write(pins.negativeLed, ( isSuccess and 0 or 1 ))
+	gpio.write(pins.positiveLed, ( isSuccess and 1 or 0 ))
 end
 
 local initNotifications = function ()

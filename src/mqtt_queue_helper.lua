@@ -11,20 +11,15 @@ do
 			if #queue > 0 then
 				local tp = table.remove(queue, 1)
 
-				if pcall(function()
+				if (not pcall(function()
 					client:publish(tp[1], tp[2], tp[3], tp[4], function ()
 						on_message_success(tp[1], tp[2])
 						send()
 					end)
-				end) then
-					-- success callback is called from client:publish callback
-					-- on_message_success(tp[1], tp[2])
-					-- send()
-				else
+				end)) then
 					on_message_fail(tp[1], tp[2]);
 					send(); -- continue the queue
 				end
-				
 			else
 				is_sending = false
 			end
