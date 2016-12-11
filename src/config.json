@@ -6,7 +6,8 @@
 	"device": {
 		"id": "********",
 		"user": "********",
-		"password": "********"
+		"password": "********",
+		"simulation": false
 	},
 	"mqtt": {
 		"address": "********",
