@@ -29,10 +29,10 @@ local initSensors = function (pins, topics, publish)
 end
 
 local initSimulation = function (pins, topics, publish)
-	print("Simulating sensors data: ")
+	print("Simulating sensors data!")
 
 	-- simulate motion detection
-	tmr.alarm(0, 10000, 1, function ()
+	tmr.alarm(0, 5000, 1, function ()
 		publish(topics.motion, {
 			motion = math.floor(math.random() * 2)
 		})
@@ -43,11 +43,11 @@ local initSimulation = function (pins, topics, publish)
 	tmr.alarm(1, 30000, 1, function ()
 		local error = dhtErrors[math.floor(math.random() * 10)]
 		
-		error and publish(topics.tempHum, nil, error)
-		or publish(topics.tempHum, {
+		if (error) then publish(topics.tempHum, nil, error)
+		else publish(topics.tempHum, {
 			temperature = math.floor(math.random() * 45),
 			humidity = math.floor(math.random() * 45)
-		})
+		}) end
 	end)
 end
 
