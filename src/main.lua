@@ -7,10 +7,11 @@ local topics = {
 	tempHum = "/temp-hum"
 }
 
-local mqttInstance = dofile("mqtt_client.lua")
-local sensors = dofile("sensors.lua")
+local MQTT = dofile("mqtt_client.lua")
+local SENSORS = dofile("sensors.lua")
 
 -- Methods
+
 local setNotification = function (isSuccess)
 	gpio.write(pins.negativeLed, ( isSuccess and 0 or 1 ))
 	gpio.write(pins.positiveLed, ( isSuccess and 1 or 0 ))
@@ -22,28 +23,34 @@ local initNotifications = function ()
 	setNotification(false) -- by default turn on the negative led
 end
 
-local initApp = function (configDevice, configMqtt)
-	-- init mqtt
-	mqttInstance.init(configDevice, configMqtt, topics, function (client)
-		print("MQTT connection established")
-		
-		setNotification(true)
-		mqttInstance.publish(topics.connectivity, "online")
-		
-		sensors.init( configDevice, pins, topics, mqttInstance.publish)
-	end, function (client)
-		print("MQTT connection lost")
-		setNotification(false)
-		tmr.delay(1000)
-		node.restart()
-	end, function (topic, payload)
-		-- on message sent success
-		setNotification(true)
-	end, function (topic, payload)
-		-- on message sent fail
-		print("Мessage sent failed")
-		setNotification(false)
-	end)
+local onConnected = function ()
+	print("MQTT connection established")
+	setNotification(true)
+	MQTT.publish(topics.connectivity, "online")
+	SENSORS.init( pins, topics, MQTT.publish)
+end
+
+local onDisconnected = function ()
+	print("MQTT connection lost")
+	setNotification(false)
+	tmr.delay(1000)
+	node.restart()
+end
+
+local onMessageSent = function (topic, payload)
+	print("Мessage sent")
+	setNotification(true)
+end
+
+local onMessageFailed = function (topic, payload)
+	print("Мessage failed")
+	setNotification(false)
+end
+
+local initApp = function ()
+	MQTT.init(  topics, -- topics
+				onConnected, onDisconnected, -- connectivity status callbacks
+				onMessageSent, onMessageFailed ) -- message status callbacks
 end
 
 -- Exposed methods

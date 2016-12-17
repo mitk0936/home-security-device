@@ -10,18 +10,17 @@ node  = require("node")
 
 dofile("utils.lua") -- global utils functions
 
-local Main = dofile("main.lua")
-
-Main.initNotifications()
+local MAIN = dofile("main.lua")
+MAIN.initNotifications()
 
 if file.open("config.json") then
-	local config = cjson.decode(file.read())
+	CONFIG = cjson.decode(file.read())
 	file.close()
 
-	-- print_table(config)
+	-- print_table(CONFIG)
 
 	wifi.setmode(wifi.STATION)
-	wifi.sta.config(config.wifi.ssid, config.wifi.password)
+	wifi.sta.config(CONFIG.wifi.ssid, CONFIG.wifi.password)
 	wifi.sta.connect()
 
 	tmr.alarm(1, 1500, 1, function()
@@ -30,7 +29,7 @@ if file.open("config.json") then
 		else
 			tmr.stop(1)
 			print("Connected, IP is "..wifi.sta.getip())
-			Main.initApp(config.device, config.mqtt)
+			MAIN.initApp()
 		end
 	end)
 else

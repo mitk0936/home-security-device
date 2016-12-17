@@ -1,10 +1,10 @@
 -- Local props
 local publisher
-local mqttQHelper = dofile("mqtt_queue_helper.lua")
-local topicPrefix
 local keepAlive = 20 -- sec
 
--- message creator function
+local MQTT_QUEUE = dofile("mqtt_queue_helper.lua")
+
+-- Methods
 local createMessage = function (value, error)
 	local message = {
 		value = value,
@@ -14,22 +14,23 @@ local createMessage = function (value, error)
 	return cjson.encode(message)
 end
 
--- Methods
-local init = function ( configDevice, configMqtt, topics, -- configs
+local init = function ( topics, -- topics
 						onConnect, onOffline, -- connectivity status callbacks
 						onMessageSuccess, onMessageFail ) -- message status callbacks
 
-	topicPrefix = configDevice.id
-
 	-- create client
-	local mqttClient = mqtt.Client(configDevice.id, keepAlive, configDevice.user, configDevice.password)
+	local mqttClient = mqtt.Client(CONFIG.device.id, keepAlive, CONFIG.device.user, CONFIG.device.password)
 
 	-- create publisher
-	publisher = mqttQHelper(mqttClient, onMessageSuccess, onMessageFail)
+	publisher = MQTT_QUEUE( mqttClient, onMessageSuccess, onMessageFail )
 
 	-- set lwt and connect to the server
-	mqttClient:lwt(topicPrefix..topics.connectivity, createMessage("offline"), 2, 1)
-	mqttClient:connect(configMqtt.address, configMqtt.port, 0, 1, onConnect, onOffline)
+	mqttClient:lwt( CONFIG.device.id..topics.connectivity,
+					createMessage("offline"), 2, 1 )
+	
+	mqttClient:connect( CONFIG.mqtt.address,
+						CONFIG.mqtt.port, 0, 1,
+						onConnect, onOffline )
 
 	-- listen for connect/disconnect
 	mqttClient:on("connect", onConnect)
@@ -38,7 +39,7 @@ end
 
 local publish = function (topic, payload, error)
 	local message = createMessage(payload, error)
-	publisher(topicPrefix..topic, message, 2, 1)
+	publisher(CONFIG.device.id..topic, message, 2, 1)
 end
 
 -- Exposed methods
