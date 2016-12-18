@@ -3,9 +3,9 @@
 -- Vladimir Dronnikov <dronnikov@gmail.com>
 do
 	-- factory
-	local make_publisher = function (client, on_message_success, on_message_fail)
+	local publish = function (client, onMessageSuccess, onMessageFail)
 		local queue = { }
-		local is_sending = false
+		local isSending = false
 
 		local function send ()
 			if #queue > 0 then
@@ -13,26 +13,27 @@ do
 
 				if (not pcall(function()
 					client:publish(tp[1], tp[2], tp[3], tp[4], function ()
-						on_message_success(tp[1], tp[2])
+						onMessageSuccess(tp[1], tp[2])
 						send()
 					end)
 				end)) then
-					on_message_fail(tp[1], tp[2]);
-					send(); -- continue the queue
+					onMessageFail(tp[1], tp[2])
+					send() -- continue the queue
 				end
 			else
-				is_sending = false
+				isSending = false
 			end
 		end
 		
-		return function (topic, message, qos, retain)
-			queue[#queue + 1] = {topic, message, qos, retain}
-			if not is_sending then
-				is_sending = true
+		return function ( topic, message, qos, retain )
+			queue[#queue + 1] = { topic, message, qos, retain }
+			
+			if not isSending then
+				isSending = true
 				send()
 			end
 		end
 	end
 
-	return make_publisher
+	return publish
 end

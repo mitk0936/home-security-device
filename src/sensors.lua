@@ -1,6 +1,9 @@
+local dht = require("dht")
+local adc = require("adc")
+
 local initSensors = function (pins, topics, publish)
 
-	-- init motion detection
+	-- init motion detection (PIR)
 	gpio.mode(pins.motion, gpio.INPUT)
 	gpio.trig(pins.motion, "both", function (level)
 		print("Motion: "..level)
@@ -9,7 +12,7 @@ local initSensors = function (pins, topics, publish)
 		})
 	end)
 
-	-- init humidity and temperature
+	-- init humidity and temperature sensor (DHT)
 	tmr.alarm(1, 30000, 1, function()
 		status, temp, humi = dht.read(pins.dht)
 
@@ -25,7 +28,10 @@ local initSensors = function (pins, topics, publish)
 		end
 	end)
 
-	-- TODO: init smoke detection
+	-- init gas sensor (MQ-2)
+	-- tmr.alarm(2, 1200, 1, function ()
+	-- 	print(adc.read(0))
+	-- end)
 end
 
 local initSimulation = function (pins, topics, publish)
@@ -38,7 +44,7 @@ local initSimulation = function (pins, topics, publish)
 		})
 	end)
 
-	-- simulate humidity and temperature
+	-- simulate humidity and temperature sensor
 	local dhtErrors = { "DHT_ERROR_CHECKSUM", "DHT_ERROR_TIMEOUT" }
 	tmr.alarm(1, 30000, 1, function ()
 		local error = dhtErrors[math.floor(math.random() * 10)]

@@ -1,12 +1,11 @@
--- Reqiured Lua firmware modules
+-- Global Lua firmware modules
 file  = require("file")
 cjson = require("cjson")
 tmr   = require("tmr")
 wifi  = require("wifi")
 gpio  = require("gpio")
-mqtt  = require("mqtt")
-dht   = require("dht")
 node  = require("node")
+
 
 dofile("utils.lua") -- global utils functions
 
