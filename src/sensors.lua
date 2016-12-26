@@ -57,14 +57,10 @@ local initSimulation = function (pins, topics, publish)
 	end)
 end
 
-local init = function ( pins, topics, publish)
+return function (pins, topics, publish)
 	local initMethod =	CONFIG.device.simulation and
 						initSimulation or
 						initSensors
 
 	initMethod(pins, topics, publish)
 end
-
-return {
-	init = init
-}

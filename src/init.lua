@@ -6,11 +6,10 @@ wifi  = require("wifi")
 gpio  = require("gpio")
 node  = require("node")
 
-
 dofile("utils.lua") -- global utils functions
 
-local MAIN = dofile("main.lua")
-MAIN.initNotifications()
+local startMain = dofile("main.lua")
+local connect = startMain()
 
 if file.open("config.json") then
 	CONFIG = cjson.decode(file.read())
@@ -28,7 +27,7 @@ if file.open("config.json") then
 		else
 			tmr.stop(1)
 			print("Connected, IP is "..wifi.sta.getip())
-			MAIN.initApp()
+			connect()
 		end
 	end)
 else
