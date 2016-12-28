@@ -1,21 +1,24 @@
 local mqtt  = require("mqtt")
-local MQTT_QUEUE = dofile("mqtt_queue_helper.lua")
+local createMessagesQueue = dofile("mqtt_queue_helper.lua")
 
 -- create client
-return function (topics) -- topics
-	local mqttClient = mqtt.Client(CONFIG.device.id, 20, CONFIG.device.user, CONFIG.device.password)
+return function (config, topics) -- topics
+	local mqttClient = mqtt.Client(config.device.id, 20, config.device.user, config.device.password)
 	
 	local lwtMessage = cjson.encode({ value = "offline" })
-	mqttClient:lwt(CONFIG.device.id..topics.connectivity, lwtMessage, 2, 1)
+	mqttClient:lwt(config.device.id..topics.connectivity, lwtMessage, 2, 1)
 
 	-- create publisher
 	return function (onMessageSuccess, onMessageFail) -- message status callbacks
-		local publisher = MQTT_QUEUE(mqttClient, onMessageSuccess, onMessageFail)
+		local publish = createMessagesQueue(mqttClient, onMessageSuccess, onMessageFail)
 
 		-- connect
 		return function (onConnect, onOffline) -- connectivity status callbacks
-			mqttClient:connect(CONFIG.mqtt.address, CONFIG.mqtt.port, 0, 1, onConnect, onOffline)
+			mqttClient:connect(config.mqtt.address, config.mqtt.port, 0, 1, onConnect, onOffline)
+
+			mqttClient:on("offline", onOffline)
 			mqttClient:on("connect", function ()
+				
 				-- publish
 				onConnect(function (topic, payload, error)
 					local message = cjson.encode({
@@ -23,11 +26,9 @@ return function (topics) -- topics
 						error = error
 					})
 
-					publisher(CONFIG.device.id..topic, message, 2, 1)
+					publish(config.device.id..topic, message, 2, 1)
 				end)
 			end)
-			
-			mqttClient:on("offline", onOffline)
 		end
 	end
 end

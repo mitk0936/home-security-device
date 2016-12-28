@@ -1,3 +1,4 @@
+-- create messages queue
 return function (client, onMessageSuccess, onMessageFail)
 	local queue = { }
 	local isSending = false

@@ -57,8 +57,8 @@ local initSimulation = function (pins, topics, publish)
 	end)
 end
 
-return function (pins, topics, publish)
-	local initMethod =	CONFIG.device.simulation and
+return function (config, pins, topics, publish)
+	local initMethod =	config.device.simulation and
 						initSimulation or
 						initSensors
 
