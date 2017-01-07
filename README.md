@@ -11,3 +11,7 @@
 
 # Fritzing sketch:
 	sketch.fzz
+
+<p align="center">
+  <img src="sketch.png" width="250"/>
+</p>
