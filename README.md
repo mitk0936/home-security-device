@@ -1,5 +1,12 @@
 # Home-security-device
 
+<h2>Wiring:<h2>
+
+<p align="center">
+	<img src="sketch.png" width="450"/>
+</p>
+
+
 # Binary with firmware:
 	nodemcu-master-11-modules-2016-12-18-08-35-29-float.bin
 
@@ -11,7 +18,3 @@
 
 # Fritzing sketch:
 	sketch.fzz
-
-<p align="center">
-  <img src="sketch.png" width="250"/>
-</p>
