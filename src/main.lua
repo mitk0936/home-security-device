@@ -7,14 +7,14 @@ local topics = {
 }
 
 local setNotification = function (isSuccess)
-	gpio.write(pins.negativeLed, ( isSuccess and 0 or 1 ))
-	gpio.write(pins.positiveLed, ( isSuccess and 1 or 0 ))
+	global.gpio.write(pins.negativeLed, ( isSuccess and 0 or 1 ))
+	global.gpio.write(pins.positiveLed, ( isSuccess and 1 or 0 ))
 end
 
 -- start
 return function ()
-	gpio.mode(pins.positiveLed, gpio.OUTPUT)
-	gpio.mode(pins.negativeLed, gpio.OUTPUT)
+	global.gpio.mode(pins.positiveLed, global.gpio.OUTPUT)
+	global.gpio.mode(pins.negativeLed, global.gpio.OUTPUT)
 	setNotification(false) -- by default turn on the negative led
 
 	-- init mqtt configuration
@@ -35,15 +35,15 @@ return function ()
 			connect(function (publish)
 				print("MQTT connection established")
 				setNotification(true)
-				publish(topics.connectivity, "online")
+				publish(topics.connectivity, { value = 1 })
 
 				local initSensors = dofile("sensors.lua")
 				initSensors(config, pins, topics, publish) -- start sensors
 			end, function ()
 				print("MQTT connection lost")
 				setNotification(false)
-				tmr.delay(1000)
-				node.restart()
+				global.tmr.delay(1000)
+				global.node.restart()
 			end)
 		end
 	end

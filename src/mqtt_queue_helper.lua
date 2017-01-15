@@ -5,15 +5,15 @@ return function (client, onMessageSuccess, onMessageFail)
 
 	local function send ()
 		if #queue > 0 then
-			local tp = table.remove(queue, 1)
+			local message = table.remove(queue, 1)
 
 			if (not pcall(function()
-				client:publish(tp[1], tp[2], tp[3], tp[4], function ()
-					onMessageSuccess(tp[1], tp[2])
+				client:publish(message[1], message[2], message[3], message[4], function ()
+					onMessageSuccess(message[1], message[2])
 					send()
 				end)
 			end)) then
-				onMessageFail(tp[1], tp[2])
+				onMessageFail(message[1], message[2])
 				send() -- continue the queue
 			end
 		else

@@ -4,8 +4,8 @@ local adc = require("adc")
 local initSensors = function (pins, topics, publish)
 
 	-- init motion detection (PIR)
-	gpio.mode(pins.motion, gpio.INPUT)
-	gpio.trig(pins.motion, "both", function (level)
+	global.gpio.mode(pins.motion, global.gpio.INPUT)
+	global.gpio.trig(pins.motion, "both", function (level)
 		print("Motion: "..level)
 		publish(topics.motion, {
 			motion = level	
@@ -13,7 +13,7 @@ local initSensors = function (pins, topics, publish)
 	end)
 
 	-- init humidity and temperature sensor (DHT)
-	tmr.alarm(1, 30000, 1, function()
+	global.tmr.alarm(1, 30000, 1, function()
 		status, temp, humi = dht.read(pins.dht)
 
 		if status == dht.OK then
@@ -29,7 +29,7 @@ local initSensors = function (pins, topics, publish)
 	end)
 
 	-- init gas sensor (MQ-2)
-	-- tmr.alarm(2, 1200, 1, function ()
+	-- global.tmr.alarm(2, 1200, 1, function ()
 	-- 	print(adc.read(0))
 	-- end)
 end
@@ -38,7 +38,7 @@ local initSimulation = function (pins, topics, publish)
 	print("Simulating sensors data!")
 
 	-- simulate motion detection
-	tmr.alarm(0, 5000, 1, function ()
+	global.tmr.alarm(0, 5000, 1, function ()
 		publish(topics.motion, {
 			motion = math.floor(math.random() * 2)
 		})
@@ -46,7 +46,7 @@ local initSimulation = function (pins, topics, publish)
 
 	-- simulate humidity and temperature sensor
 	local dhtErrors = { "DHT_ERROR_CHECKSUM", "DHT_ERROR_TIMEOUT" }
-	tmr.alarm(1, 30000, 1, function ()
+	global.tmr.alarm(1, 30000, 1, function ()
 		local error = dhtErrors[math.floor(math.random() * 10)]
 		
 		if (error) then publish(topics.tempHum, nil, error)
@@ -58,9 +58,6 @@ local initSimulation = function (pins, topics, publish)
 end
 
 return function (config, pins, topics, publish)
-	local initMethod =	config.device.simulation and
-						initSimulation or
-						initSensors
-
+	local initMethod = ( config.device.simulation ) and initSimulation or initSensors
 	initMethod(pins, topics, publish)
 end
