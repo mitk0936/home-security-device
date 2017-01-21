@@ -15,15 +15,13 @@ return function (config, topics) -- topics
 		-- connect
 		return function (onConnect, onOffline) -- connectivity status callbacks
 			mqttClient:connect(config.mqtt.address, config.mqtt.port, 0, 1, onConnect, onOffline)
-
 			mqttClient:on("offline", onOffline)
-			mqttClient:on("connect", function ()
-				
+
+			mqttClient:on("connect", function ()	
 				local publish = function (topic, payload, error)
-					local timestamp = global.rtctime.get()
 					local message = global.cjson.encode({
 						value = payload,
-						timestamp  = timestamp,
+						timestamp = global.rtctime.get(),
 						error = error
 					})
 

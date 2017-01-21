@@ -1,0 +1,33 @@
+{
+  "name": "nodemcu-security-device",
+  "version": "1.0.0",
+  "description": "Embedded device for measuring temperature and humidity, detecting motion and smoke (gas) at home or in the office. The device sends the data via mqtt protocool",
+  "main": "index.js",
+  "scripts": {
+    "build": "node build upload",
+    "config": "node build config",
+    "start": "node build start"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mitk0936/home-security-device.git"
+  },
+  "keywords": [
+    "nodemcu",
+    "lua",
+    "mqtt",
+    "security",
+    "device"
+  ],
+  "author": "Dimitar Mihaylov",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mitk0936/home-security-device/issues"
+  },
+  "homepage": "https://github.com/mitk0936/home-security-device#readme",
+  "devDependencies": {
+    "commander": "^2.9.0",
+    "nodemcu-tool": "^2.0.4",
+    "shelljs": "^0.7.6"
+  }
+}

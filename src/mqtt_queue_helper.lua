@@ -21,6 +21,7 @@ return function (client, onMessageSuccess, onMessageFail)
 		end
 	end
 	
+	-- push message in the queue
 	return function (topic, message, qos, retain)
 		queue[#queue + 1] = { topic, message, qos, retain }
 		
