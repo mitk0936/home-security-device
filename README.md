@@ -14,7 +14,7 @@
 	npm start (for starting the nodemcu terminal)
 
 # Binary with firmware:
-	sketch/nodemcu-master-11-modules-2017-01-15-14-51-22-integer.bin
+	sketch/nodemcu-master-11-modules-2017-01-15-14-51-22-float.bin
 
 # Nodemcu modules:
 	adc, cjson, dht, file, gpio, mqtt, node, rtctime, sntp, tmr, wifi

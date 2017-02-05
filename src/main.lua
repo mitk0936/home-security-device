@@ -35,7 +35,7 @@ return function ()
 			connect(function (publish)
 				print("MQTT connection established")
 				setNotification(true)
-				publish(topics.connectivity, { value = 1 })
+				publish(topics.connectivity, 1)
 
 				local initSensors = dofile("sensors.lua")
 				initSensors(config, pins, topics, publish) -- start sensors

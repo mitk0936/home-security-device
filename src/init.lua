@@ -26,7 +26,7 @@ local syncTime = function (onSuccess)
 end
 
 if file.open("config.json") then
-	local config = cjson.decode(file.read())
+	local config = global.cjson.decode(file.read())
 	-- print_table(config)
 	file.close()
 

@@ -7,9 +7,7 @@ local initSensors = function (pins, topics, publish)
 	global.gpio.mode(pins.motion, global.gpio.INPUT)
 	global.gpio.trig(pins.motion, "both", function (level)
 		print("Motion: "..level)
-		publish(topics.motion, {
-			motion = level	
-		})
+		publish(topics.motion, level)
 	end)
 
 	-- init humidity and temperature sensor (DHT)
@@ -39,25 +37,38 @@ local initSimulation = function (pins, topics, publish)
 
 	-- simulate motion detection
 	global.tmr.alarm(0, 5000, 1, function ()
-		publish(topics.motion, {
-			motion = math.floor(math.random() * 2)
-		})
+		publish(topics.motion, math.floor(math.random() * 2))
 	end)
 
 	-- simulate humidity and temperature sensor
 	local dhtErrors = { "DHT_ERROR_CHECKSUM", "DHT_ERROR_TIMEOUT" }
 	global.tmr.alarm(1, 30000, 1, function ()
 		local error = dhtErrors[math.floor(math.random() * 10)]
-		
+
 		if (error) then publish(topics.tempHum, nil, error)
 		else publish(topics.tempHum, {
-			temperature = math.floor(math.random() * 45),
-			humidity = math.floor(math.random() * 45)
+			temperature = math.floor(math.random() * 100),
+			humidity = math.floor(math.random() * 100)
 		}) end
 	end)
 end
 
 return function (config, pins, topics, publish)
+	local lastSent = {
+		[topics.motion] = {},
+		[topics.tempHum] = {}
+		-- [topics.gas]
+	}
+
+	local optimizedPublish = function (topic, data)
+		if (global.cjson.encode(lastSent[topic]) ~= global.cjson.encode(data)) then
+			publish(topic, data)
+			lastSent[topic] = data
+		else
+			print('Refused to send data for '..topic..', due to bandwith optimizations')
+		end
+	end
+
 	local initMethod = ( config.device.simulation ) and initSimulation or initSensors
-	initMethod(pins, topics, publish)
+	initMethod(pins, topics, optimizedPublish)
 end
