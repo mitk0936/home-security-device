@@ -7,7 +7,7 @@ local initSensors = function (pins, topics, publish)
 	global.gpio.mode(pins.motion, global.gpio.INPUT)
 	global.gpio.trig(pins.motion, "both", function (level)
 		print("Motion: "..level)
-		publish(topics.motion, level)
+		publish(topics.motion, level, nil, 2, level)
 	end)
 
 	-- init humidity and temperature sensor (DHT)
@@ -18,11 +18,11 @@ local initSensors = function (pins, topics, publish)
 			publish(topics.tempHum, {
 				temperature = temp,
 				humidity = humi	
-			})
+			}, 2, 1)
 		elseif status == dht.ERROR_CHECKSUM then
-			publish(topics.tempHum, nil, "DHT_ERROR_CHECKSUM")
+			publish(topics.tempHum, nil, "DHT_ERROR_CHECKSUM", 2, 1)
 		elseif status == dht.ERROR_TIMEOUT then
-			publish(topics.tempHum, nil, "DHT_ERROR_TIMEOUT")
+			publish(topics.tempHum, nil, "DHT_ERROR_TIMEOUT", 2, 1)
 		end
 	end)
 
@@ -37,7 +37,8 @@ local initSimulation = function (pins, topics, publish)
 
 	-- simulate motion detection
 	global.tmr.alarm(0, 5000, 1, function ()
-		publish(topics.motion, math.floor(math.random() * 2))
+		local level = math.floor(math.random() * 2)
+		publish(topics.motion, level, nil, 2, level) -- retain only when motion is detected
 	end)
 
 	-- simulate humidity and temperature sensor
@@ -45,11 +46,11 @@ local initSimulation = function (pins, topics, publish)
 	global.tmr.alarm(1, 30000, 1, function ()
 		local error = dhtErrors[math.floor(math.random() * 10)]
 
-		if (error) then publish(topics.tempHum, nil, error)
+		if (error) then publish(topics.tempHum, nil, error, 2, 1)
 		else publish(topics.tempHum, {
 			temperature = math.floor(math.random() * 100),
 			humidity = math.floor(math.random() * 100)
-		}) end
+		}, nil, 2, 1) end
 	end)
 end
 
@@ -60,9 +61,9 @@ return function (config, pins, topics, publish)
 		-- [topics.gas]
 	}
 
-	local optimizedPublish = function (topic, data)
+	local optimizedPublish = function (topic, data, error, qos, retain)
 		if (global.cjson.encode(lastSent[topic]) ~= global.cjson.encode(data)) then
-			publish(topic, data)
+			publish(topic, data, error, qos, retain)
 			lastSent[topic] = data
 		else
 			print('Refused to send data for '..topic..', due to bandwith optimizations')

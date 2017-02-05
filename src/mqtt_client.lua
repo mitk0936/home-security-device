@@ -18,14 +18,15 @@ return function (config, topics) -- topics
 			mqttClient:on("offline", onOffline)
 
 			mqttClient:on("connect", function ()	
-				local publish = function (topic, payload, error)
+				local publish = function (topic, payload, error, qos, retain)
 					local message = global.cjson.encode({
 						value = payload,
 						timestamp = global.rtctime.get(),
 						error = error
 					})
 
-					publisher(config.device.id..topic, message, 2, 1)
+					print('sending', topic, payload, error, qos, retain)
+					publisher(config.device.id..topic, message, qos, retain)
 				end
 
 				-- publish
