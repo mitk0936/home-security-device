@@ -4,7 +4,7 @@ require('shelljs/global');
 const nodemcuToolPath = 'node_modules/nodemcu-tool/bin'
 const pathToSrc = '../../..'
 
-const options = '--connection-delay 300 --optimize --baud 115200'
+const options = '--connection-delay 800 --optimize --baud 115200'
 
 cli.command('upload').action(function () {
 	var allFiles = ''
@@ -33,9 +33,9 @@ cli.command('config').action(function () {
 
 cli.command('start').action(function () {
 	cd(nodemcuToolPath);
+
 	require('child_process').execSync('node nodemcu-tool terminal',
 	{stdio: 'inherit'})
-	exec('node nodemcu-tool reset')
 })
 
 cli.command('*').action( function(c){
