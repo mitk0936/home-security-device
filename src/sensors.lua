@@ -39,9 +39,11 @@ local initSensors = function (pins, topics, publish)
 	end)
 
 	-- init gas sensor (MQ-2)
-	-- global.tmr.alarm(2, 1200, 1, function ()
-	-- 	print(adc.read(0))
-	-- end)
+	global.tmr.alarm(2, 10000, 1, function ()
+		local smokeGasConcentration = adc.read(0)
+		local retain = 1
+		publish(topics.gas, smokeGasConcentration, nil, qos, retain)
+	end)
 end
 
 local initSimulation = function (pins, topics, publish)
@@ -75,13 +77,19 @@ local initSimulation = function (pins, topics, publish)
 			}, error, qos, retain)
 		 end
 	end)
+
+	global.tmr.alarm(2, 10000, 1, function ()
+		local smokeGasConcentration = math.floor(math.random() * 100)
+		local retain = 1
+		publish(topics.gas, smokeGasConcentration, nil, qos, retain)
+	end)
 end
 
 return function (config, pins, topics, publish)
 	local lastSent = {
 		[topics.motion] = {},
-		[topics.tempHum] = {}
-		-- [topics.gas]
+		[topics.tempHum] = {},
+		[topics.gas] = {}
 	}
 
 	local optimizedPublish = function (topic, data, error, qos, retain)

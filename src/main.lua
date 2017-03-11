@@ -3,7 +3,8 @@ local pins = { motion = 5, dht = 2, positiveLed = 4, negativeLed = 3, gas = 0 }
 local topics = {
 	connectivity = "/connectivity",
 	motion = "/motion",
-	tempHum = "/temp-hum"
+	tempHum = "/temp-hum",
+	gas = "/gas"
 }
 
 local setNotification = function (isSuccess)
