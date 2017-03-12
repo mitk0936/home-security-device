@@ -1,16 +1,16 @@
 {
 	"wifi": {
-		"ssid": "mitko-mobile",
-		"password": "myphone1"
+		"ssid": "********",
+		"password": "********"
 	},
 	"device": {
-		"id": "test-node-01",
-		"user": "test-node-01",
-		"password": "node-01",
+		"id": "********",
+		"user": "********",
+		"password": "********",
 		"simulation": true
 	},
 	"mqtt": {
-		"address": "m21.cloudmqtt.com",
-		"port": 10247
+		"address": "********",
+		"port": 0000
 	}
 }
