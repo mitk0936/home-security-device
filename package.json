@@ -6,6 +6,7 @@
   "scripts": {
     "build": "node build upload",
     "config": "node build config",
+    "sign": "node build sign",
     "start": "node build start"
   },
   "repository": {

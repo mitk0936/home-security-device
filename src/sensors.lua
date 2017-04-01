@@ -1,10 +1,7 @@
 local dht = require("dht")
 local adc = require("adc")
 
-local qos = 2
-
 local initSensors = function (pins, topics, publish)
-
 	-- init motion detection (PIR)
 	global.gpio.mode(pins.motion, global.gpio.INPUT)
 	global.gpio.trig(pins.motion, "both", function (motionValue)
@@ -12,37 +9,28 @@ local initSensors = function (pins, topics, publish)
 			print('Motion is detected!')
 		end
 
-		local retain = motionValue -- retain only when motion is detected
-		local error = nil
-
-		publish(topics.motion, motionValue, error, qos, retain) 
+		publish(topics.motion, motionValue, nil, motionValue) 
 	end)
 
 	-- init humidity and temperature sensor (DHT)
-	global.tmr.alarm(1, 30000, 1, function()
-		status, temp, humi = dht.read(pins.dht)
-
-		local payload = nil
-		local error = nil
-		local retain = 1
+	global.tmr.alarm(2, 30000, 1, function()
+		local status, temp, humi = dht.read(pins.dht)
 		
 		if status == dht.OK then
 			publish(topics.tempHum, {
 				temperature = temp,
 				humidity = humi	
-			}, error, qos, retain)
+			}, nil, 1)
 		elseif status == dht.ERROR_CHECKSUM then
-			publish(topics.tempHum, payload, "DHT_ERROR_CHECKSUM", qos, retain)
+			publish(topics.tempHum, nil, "DHT_ERROR_CHECKSUM", 1)
 		elseif status == dht.ERROR_TIMEOUT then
-			publish(topics.tempHum, payload, "DHT_ERROR_TIMEOUT", qos, retain)
+			publish(topics.tempHum, nil, "DHT_ERROR_TIMEOUT", 1)
 		end
 	end)
 
 	-- init gas sensor (MQ-2)
-	global.tmr.alarm(2, 10000, 1, function ()
-		local smokeGasConcentration = adc.read(0)
-		local retain = 1
-		publish(topics.gas, smokeGasConcentration, nil, qos, retain)
+	global.tmr.alarm(3, 17000, 1, function ()
+		publish(topics.gas, adc.read(0), nil, 1)
 	end)
 end
 
@@ -50,38 +38,31 @@ local initSimulation = function (pins, topics, publish)
 	print("Simulating sensors data!")
 
 	-- simulate motion detection
-	global.tmr.alarm(0, 5000, 1, function ()
+	global.tmr.alarm(2, 5000, 1, function ()
 		local motionValue = math.floor(math.random() * 2) -- 0 or 1
-
-		local retain = motionValue -- retain only when motion is detected
-		local error = nil
-		
-		publish(topics.motion, motionValue, error, qos, retain)
+		-- retain only when motion is detected
+		publish(topics.motion, motionValue, nil, motionValue)
 	end)
 
 	-- simulate humidity and temperature sensor
 	local dhtErrors = { "DHT_ERROR_CHECKSUM", "DHT_ERROR_TIMEOUT" }
 
-	global.tmr.alarm(1, 30000, 1, function ()
-		local payload = nil
+	global.tmr.alarm(3, 30000, 1, function ()
 		local error = dhtErrors[math.floor(math.random() * 10)]
-		local retain = 1
 
 		if (error) then
-			publish(topics.tempHum, payload, error, qos, retain)
+			publish(topics.tempHum, nil, error, 1)
 		else
-			error = nil
 			publish(topics.tempHum, {
 				temperature = math.floor(math.random() * 100),
 				humidity = math.floor(math.random() * 100)
-			}, error, qos, retain)
+			}, nil, 1)
 		 end
 	end)
 
-	global.tmr.alarm(2, 10000, 1, function ()
+	global.tmr.alarm(4, 17000, 1, function ()
 		local smokeGasConcentration = math.floor(math.random() * 100)
-		local retain = 1
-		publish(topics.gas, smokeGasConcentration, nil, qos, retain)
+		publish(topics.gas, smokeGasConcentration, nil, 1)
 	end)
 end
 
@@ -92,9 +73,9 @@ return function (config, pins, topics, publish)
 		[topics.gas] = {}
 	}
 
-	local optimizedPublish = function (topic, data, error, qos, retain)
+	local optimizedPublish = function (topic, data, error, retain)
 		if (global.cjson.encode(lastSent[topic]) ~= global.cjson.encode(data)) then
-			publish(topic, data, error, qos, retain)
+			publish(topic, data, error, 2, retain)
 			lastSent[topic] = data
 		else
 			print('Refused to send data for '..topic..', due to bandwith optimizations')

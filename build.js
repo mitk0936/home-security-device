@@ -22,6 +22,17 @@ cli.command('upload').action(function () {
 	})
 })
 
+cli.command('sign').action(function () {
+	cd(nodemcuToolPath);
+
+	var command = `node nodemcu-tool run sign.lua`
+
+	exec('node nodemcu-tool reset', function () {
+		require('child_process')
+			.execSync(`node nodemcu-tool run sign.lua`, {stdio: 'inherit'})
+	})
+})
+
 cli.command('config').action(function () {
 	cd(nodemcuToolPath);
 	exec('node nodemcu-tool reset', function () {

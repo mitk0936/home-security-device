@@ -1,5 +1,4 @@
 local mqtt  = require("mqtt")
-local createMessagesQueue = dofile("mqtt_queue_helper.lua")
 
 -- create client
 return function (config, topics) -- topics
@@ -10,11 +9,11 @@ return function (config, topics) -- topics
 
 	-- create publisher
 	return function (onMessageSuccess, onMessageFail) -- message status callbacks
-		local publisher = createMessagesQueue(mqttClient, onMessageSuccess, onMessageFail)
+		local publisher = dofile("mqtt_queue_helper.lua")(mqttClient, onMessageSuccess, onMessageFail)
 
 		-- connect
 		return function (onConnect, onOffline) -- connectivity status callbacks
-			mqttClient:connect(config.mqtt.address, config.mqtt.port, 0, 1, onConnect, onOffline)
+			mqttClient:connect(config.mqtt.address, config.mqtt.port, 1, 1, onConnect, onOffline)
 			mqttClient:on("offline", onOffline)
 
 			mqttClient:on("connect", function ()	
@@ -26,6 +25,8 @@ return function (config, topics) -- topics
 					})
 
 					print('sending', topic, payload, error, qos, retain)
+					print('heap', global.node.heap())
+
 					publisher(config.device.id..topic, message, qos, retain)
 				end
 

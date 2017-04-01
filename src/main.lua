@@ -20,11 +20,11 @@ return function ()
 
 	-- init mqtt configuration
 	return function (config)
-		local createClient = dofile("mqtt_client.lua")
-		local createPublisher = createClient(config, topics)
+		local createPublisher = dofile("mqtt_client.lua")(config, topics)
 
 		local connect = createPublisher(function ()
 			print("Мessage sent")
+			collectgarbage()
 			setNotification(true)
 		end, function ()
 			print("Мessage failed")
@@ -36,10 +36,17 @@ return function ()
 			connect(function (publish)
 				print("MQTT connection established")
 				setNotification(true)
+				print('heap before', global.node.heap())
 				publish(topics.connectivity, 1, nil, 2, 1)
 
-				local initSensors = dofile("sensors.lua")
-				initSensors(config, pins, topics, publish) -- start sensors
+				global.tmr.alarm(1, 3500, 1, function()
+					
+					dofile("sensors.lua")(config, pins, topics, publish) -- start sensors
+
+					print('heap after', global.node.heap())
+					global.tmr.stop(1)
+				end)
+
 			end, function ()
 				print("MQTT connection lost")
 				setNotification(false)

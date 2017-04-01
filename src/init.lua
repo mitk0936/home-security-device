@@ -11,14 +11,10 @@ local file  = require("file")
 local wifi  = require("wifi")
 local sntp = require("sntp")
 
-dofile("utils.lua")
-
-local startMain = dofile("main.lua")
-local configurateMqtt = startMain()
+local configurateMqtt = dofile("main.lua")()
 
 local syncTime = function (onSuccess)
 	sntp.sync("0.pool.ntp.org", function ()
-		print("time sync ready")
 		onSuccess()
 	end, function (err) -- time sync error callback
 		syncTime(onSuccess)
@@ -27,7 +23,6 @@ end
 
 if file.open("config.json") then
 	local config = global.cjson.decode(file.read())
-	-- print_table(config)
 	file.close()
 
 	local connectMqtt = configurateMqtt(config)
