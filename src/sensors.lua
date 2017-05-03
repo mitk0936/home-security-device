@@ -15,6 +15,7 @@ local initSensors = function (pins, topics, publish)
 	-- init humidity and temperature sensor (DHT)
 	global.tmr.alarm(2, 30000, 1, function()
 		local status, temp, humi = dht.read(pins.dht)
+		print(temp, humi)
 		
 		if status == dht.OK then
 			publish(topics.tempHum, {
@@ -30,7 +31,8 @@ local initSensors = function (pins, topics, publish)
 
 	-- init gas sensor (MQ-2)
 	global.tmr.alarm(3, 17000, 1, function ()
-		publish(topics.gas, adc.read(0), nil, 1)
+		local smokeValue = math.floor(tonumber(adc.read(0)) / 1023 * 100)
+		publish(topics.gas, smokeValue, nil, 1)
 	end)
 end
 

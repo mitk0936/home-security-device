@@ -13,10 +13,16 @@ local sntp = require("sntp")
 
 local configurateMqtt = dofile("main.lua")()
 
-local syncTime = function (onSuccess)
+-- Function called, to sync the time with the rtctime module
+
+--	onSuccess () ->
+--		callback function, executed when time is 
+--		successfully synced
+syncTime = function (onSuccess)
 	sntp.sync("0.pool.ntp.org", function ()
 		onSuccess()
-	end, function (err) -- time sync error callback
+	end, function (err)
+		global.tmr.delay(2000)
 		syncTime(onSuccess)
 	end)
 end
@@ -43,4 +49,6 @@ if file.open("config.json") then
 	end)
 else
 	print("Cannot read config.json")
+	global.tmr.delay(20000)
+	global.node.restart()
 end
