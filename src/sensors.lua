@@ -31,16 +31,17 @@ local initSensors = function (pins, topics, publish)
 
 	-- init gas sensor (MQ-2)
 	global.tmr.alarm(3, 17000, 1, function ()
-		local smokeValue = math.floor(tonumber(adc.read(0)) / 1023 * 100)
+		local smokeValue = math.floor(tonumber(adc.read(pins.gas)) / 1023 * 100)
 		publish(topics.gas, smokeValue, nil, 1)
 	end)
 end
 
 local initSimulation = function (pins, topics, publish)
 	print("Simulating sensors data!")
-
+	local sensorsInterval = 60000
+	
 	-- simulate motion detection
-	global.tmr.alarm(2, 5000, 1, function ()
+	global.tmr.alarm(2, sensorsInterval, 1, function ()
 		local motionValue = math.floor(math.random() * 2) -- 0 or 1
 		-- retain only when motion is detected
 		publish(topics.motion, motionValue, nil, motionValue)
@@ -49,7 +50,7 @@ local initSimulation = function (pins, topics, publish)
 	-- simulate humidity and temperature sensor
 	local dhtErrors = { "DHT_ERROR_CHECKSUM", "DHT_ERROR_TIMEOUT" }
 
-	global.tmr.alarm(3, 30000, 1, function ()
+	global.tmr.alarm(3, sensorsInterval, 1, function ()
 		local error = dhtErrors[math.floor(math.random() * 10)]
 
 		if (error) then
@@ -62,7 +63,7 @@ local initSimulation = function (pins, topics, publish)
 		 end
 	end)
 
-	global.tmr.alarm(4, 17000, 1, function ()
+	global.tmr.alarm(4, sensorsInterval, 1, function ()
 		local smokeGasConcentration = math.floor(math.random() * 100)
 		publish(topics.gas, smokeGasConcentration, nil, 1)
 	end)
