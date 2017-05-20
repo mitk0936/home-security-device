@@ -1,13 +1,13 @@
 local mqtt  = require("mqtt")
 
--- create client
+-- createClient
 return function (config, topics) -- topics
 	local mqttClient = mqtt.Client(config.device.id, 20, config.device.user, config.device.password)
 	
 	local lwtMessage = global.cjson.encode({ value = 0 })
 	mqttClient:lwt(config.device.id..topics.connectivity, lwtMessage, 2, 1)
 
-	-- create publisher
+	-- createPublisher
 	return function (onMessageSuccess, onMessageFail) -- message status callbacks
 		local publisher = dofile("mqtt_queue_helper.lua")(mqttClient, onMessageSuccess, onMessageFail)
 

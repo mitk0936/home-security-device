@@ -11,7 +11,7 @@ local file  = require("file")
 local wifi  = require("wifi")
 local sntp = require("sntp")
 
-local configurateMqtt = dofile("main.lua")()
+local configureMqtt = dofile("main.lua")()
 
 -- Function called, to sync the time with the rtctime module
 
@@ -31,7 +31,7 @@ if file.open("config.json") then
 	local config = global.cjson.decode(file.read())
 	file.close()
 
-	local connectMqtt = configurateMqtt(config)
+	local connectMqtt = configureMqtt(config)
 
 	wifi.setmode(wifi.STATION)
 	wifi.sta.config(config.wifi.ssid, config.wifi.password)

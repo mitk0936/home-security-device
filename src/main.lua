@@ -20,7 +20,7 @@ return function ()
 	global.gpio.mode(pins.negativeLed, global.gpio.OUTPUT)
 	turnLedOn(false) -- by default turn on the negative led
 
-	-- initializeMqttModule
+	-- configureMqttModule
 	return function (config)
 		local createMqttClient = dofile("mqtt_client.lua")
 		local createMqttPublisher = createMqttClient(config, topics)
@@ -50,7 +50,7 @@ return function ()
 			global.tmr.alarm(1, 3500, 1, function()
 				global.tmr.stop(1)
 				-- initialization of the sensors.lua program
-				dofile("sensors.lua")(config, pins, topics, publish) 
+				dofile("sensors.lua")(config, pins, topics, publish)
 			end)
 		end
 
