@@ -2,6 +2,9 @@
 	Node scripts for building and configuring the hardware device.
 	Used npm commands:
 	
+	npm run mkfs
+	To clear the filesystem of the connected device.
+	
 	npm run upload
 	To take all the lua source code from the src/ folder and to upload it on the connected microcontroller.
 	
@@ -20,25 +23,72 @@ require('shelljs/global');
 const nodemcuToolPath = 'node_modules/nodemcu-tool/bin'
 const pathToSrc = '../../..'
 
-// setting default options, used by the NodeMCU-Tool
-const options = '--connection-delay 200 --optimize --baud 115200'
+/* setting default options, used by the NodeMCU-Tool */
+const options = `--connection-delay 400 --optimize --baud 115200`
+
+/*
+	findPort - function which finds connected device on USB port,
+	returns success callback and passes the port name to it.
+	Throws an error if no devices are found, or more than 1 devices are connected
+*/
+const findPort = function (onSuccess) {
+	const serialport = require('serialport')
+	const portsFound = []
+
+	serialport.list(function (err, ports) {
+		if (err) {
+			throw 'Error occured with finding connected device on USB port.'
+		}
+
+		ports.forEach(function(port) {
+			console.log('Found device on ', port.comName)
+			portsFound.push(port.comName)
+		})
+
+		switch (portsFound.length) {
+			case 1:
+				onSuccess(portsFound[0])
+				break;
+			case 0:
+				throw 'No connected devices were found.'
+				break;
+			default:
+				throw 'More than one devices were found.'
+		}
+	})
+}
+
+/*
+	Command for clearing the device file system.
+	Usage: npm run mkfs
+*/
+cli.command('mkfs').action(function () {
+	cd(nodemcuToolPath);
+
+	findPort(function (port) {
+		require('child_process')
+			.execSync(`node nodemcu-tool mkfs --port=${port}`, { stdio: 'inherit' })
+	})
+})
 
 /*
 	Command for uploading the source files.
 	Usage: npm run upload
 */
 cli.command('upload').action(function () {
-	var allFiles = ''
+	findPort(function (port) {
+		var allFiles = ''
 
-	ls('src/*.lua').forEach(function (filename) {
-		allFiles += ` ${pathToSrc}/${filename}`
-	})
+		ls('src/*.lua').forEach(function (filename) {
+			allFiles += ` ${pathToSrc}/${filename}`
+		})
 
-	cd(nodemcuToolPath);
-	
-	exec('node nodemcu-tool reset', function () {
-		require('child_process')
-			.execSync(`node nodemcu-tool upload ${allFiles} ${options}`, {stdio: 'inherit'});
+		cd(nodemcuToolPath)
+		
+		exec(`node nodemcu-tool reset --port=${port}`, function () {
+			require('child_process')
+				.execSync(`node nodemcu-tool upload ${allFiles} --port=${port} ${options}`, { stdio: 'inherit' })
+		})
 	})
 })
 
@@ -47,10 +97,11 @@ cli.command('upload').action(function () {
 	Usage: npm run config
 */
 cli.command('config').action(function () {
-	cd(nodemcuToolPath);
-	exec('node nodemcu-tool reset', function () {
+	findPort(function (port) {
+		cd(nodemcuToolPath)
+
 		require('child_process')
-			.execSync(`node nodemcu-tool upload ${pathToSrc}/src/config.json ${options}`, {stdio: 'inherit'})
+			.execSync(`node nodemcu-tool upload ${pathToSrc}/src/config.json --port=${port} ${options}`, { stdio: 'inherit' })
 	})
 })
 
@@ -60,10 +111,14 @@ cli.command('config').action(function () {
 	Usage: npm start
 */
 cli.command('start').action(function () {
-	cd(nodemcuToolPath);
+	findPort(function (port) {
+		cd(nodemcuToolPath)
 
-	require('child_process')
-		.execSync('node nodemcu-tool terminal', {stdio: 'inherit'})
+		exec(`node nodemcu-tool reset --port=${port}`, function () {
+			require('child_process')
+				.execSync(`node nodemcu-tool terminal --port=${port}`, { stdio: 'inherit' })
+		})
+	})
 })
 
 /*
@@ -71,22 +126,22 @@ cli.command('start').action(function () {
 	crypting the data.
 */
 cli.command('sign').action(function () {
-	cd(nodemcuToolPath);
+	cd(nodemcuToolPath)
 
 	var command = `node nodemcu-tool run sign.lua`
 
 	exec('node nodemcu-tool reset', function () {
 		require('child_process')
-			.execSync(`node nodemcu-tool run sign.lua`, {stdio: 'inherit'})
+			.execSync(`node nodemcu-tool run sign.lua`, { stdio: 'inherit' })
 	})
 })
 
 /*
-	Handle running of unknown commands.
+	Handle execution of unknown commands.
 */
 cli.command('*').action( function(c){
 	console.error('Unknown command "' + c + '"')
-	cli.outputHelp();
+	cli.outputHelp()
 })
 
 cli.parse(process.argv)

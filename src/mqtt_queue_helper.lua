@@ -1,4 +1,4 @@
--- create messages queue
+-- createPublisher
 return function (client, onMessageSuccess, onMessageFail)
 	local queue = { }
 	local isSending = false
@@ -21,7 +21,7 @@ return function (client, onMessageSuccess, onMessageFail)
 		end
 	end
 	
-	-- push message in the queue
+	-- publish
 	return function (topic, message, qos, retain)
 		queue[#queue + 1] = { topic, message, qos, retain }
 		

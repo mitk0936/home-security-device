@@ -30,7 +30,7 @@ local initSensors = function (pins, topics, publish)
 	end)
 
 	-- init gas sensor (MQ-2)
-	global.tmr.alarm(3, 17000, 1, function ()
+	global.tmr.alarm(3, 4000, 1, function ()
 		local smokeValue = math.floor(tonumber(adc.read(pins.gas)) / 1023 * 100)
 		publish(topics.gas, smokeValue, nil, 1)
 	end)
@@ -69,19 +69,23 @@ local initSimulation = function (pins, topics, publish)
 	end)
 end
 
+-- init
 return function (config, pins, topics, publish)
+	-- table with data about last sent messages
 	local lastSent = {
 		[topics.motion] = {},
 		[topics.tempHum] = {},
 		[topics.gas] = {}
 	}
 
+	-- method for optimizing the sending of data
 	local optimizedPublish = function (topic, data, error, retain)
+		-- check if previous sent data to this topic is the same as the new one
 		if (global.cjson.encode(lastSent[topic]) ~= global.cjson.encode(data)) then
-			publish(topic, data, error, 2, retain)
-			lastSent[topic] = data
+			publish(topic, data, error, 2, retain) -- publish the new message
+			lastSent[topic] = data -- save the new message
 		else
-			print('Refused to send data for '..topic..', due to bandwith optimizations')
+			print('Refused to send data for '..topic..', due to bandwith optimizations.')
 		end
 	end
 

@@ -9,18 +9,18 @@ local topics = {
 
 --	Function called to turn on/off notification LED's
 -- isSuccess -> boolean parameter for positive/negative LED
-local turnLedOn = function (isSuccess)
+local turnLed = function (isSuccess)
 	global.gpio.write(pins.negativeLed, ( isSuccess and 0 or 1 ))
 	global.gpio.write(pins.positiveLed, ( isSuccess and 1 or 0 ))
 end
 
--- initialization of the main.lua program
+-- initMain
 return function ()
 	global.gpio.mode(pins.positiveLed, global.gpio.OUTPUT)
 	global.gpio.mode(pins.negativeLed, global.gpio.OUTPUT)
-	turnLedOn(false) -- by default turn on the negative led
+	turnLed(false) -- by default turn on the negative led
 
-	-- configureMqttModule
+	-- configureMqtt
 	return function (config)
 		local createMqttClient = dofile("mqtt_client.lua")
 		local createMqttPublisher = createMqttClient(config, topics)
@@ -28,19 +28,21 @@ return function ()
 		-- connect function is returned from the mqtt module,
 		-- as result of created publisher
 		local connect = createMqttPublisher(
-			function ()  -- callback called on message sent
-				turnLedOn(true)
+			-- onMessageSent
+			function ()
+				turnLed(true)
 				collectgarbage()
 			end,
-			function () -- callback called on message failed sending
+			-- onMessageFailed
+			function ()
 				print("Мessage failed sending...")
-				turnLedOn(false)
+				turnLed(false)
 			end
 		)
 
 		-- callback for established connection
 		local connectSuccess = function (publish) 
-			turnLedOn(true)
+			turnLed(true)
 			-- telling the server that the device is online
 			publish(topics.connectivity, 1, nil, 2, 1)
 
@@ -56,7 +58,7 @@ return function ()
 
 		-- callback for lost conenction
 		local connectionLost = function ()
-			turnLedOn(false)
+			turnLed(false)
 			global.tmr.delay(1000)
 			global.node.restart()
 		end

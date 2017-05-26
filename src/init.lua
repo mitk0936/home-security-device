@@ -19,9 +19,14 @@ local configureMqtt = dofile("main.lua")()
 --		callback function, executed when time is 
 --		successfully synced
 syncTime = function (onSuccess)
-	sntp.sync("0.pool.ntp.org", function ()
+	sntp.sync({
+		"0.bg.pool.ntp.org",
+		"1.bg.pool.ntp.org",
+		"0.pool.ntp.org"
+	}, function ()
 		onSuccess()
-	end, function (err)
+	end, function (err, name)
+		print('problem', err, name)
 		global.tmr.delay(2000)
 		syncTime(onSuccess)
 	end)

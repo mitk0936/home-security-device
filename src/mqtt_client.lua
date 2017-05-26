@@ -2,10 +2,10 @@ local mqtt  = require("mqtt")
 
 -- createClient
 return function (config, topics) -- topics
-	local mqttClient = mqtt.Client(config.device.id, 20, config.device.user, config.device.password)
+	local mqttClient = mqtt.Client(config.device.user, 20, config.device.user, config.device.password)
 	
 	local lwtMessage = global.cjson.encode({ value = 0 })
-	mqttClient:lwt(config.device.id..topics.connectivity, lwtMessage, 2, 1)
+	mqttClient:lwt(config.device.user..topics.connectivity, lwtMessage, 2, 1)
 
 	-- createPublisher
 	return function (onMessageSuccess, onMessageFail) -- message status callbacks
@@ -27,7 +27,7 @@ return function (config, topics) -- topics
 					print('sending', topic, payload, error, qos, retain)
 					print('heap', global.node.heap())
 
-					publisher(config.device.id..topic, message, qos, retain)
+					publisher(config.device.user..topic, message, qos, retain)
 				end
 
 				-- publish
