@@ -7,7 +7,7 @@ return function (client, onMessageSuccess, onMessageFail)
 		if #queue > 0 then
 			local message = table.remove(queue, 1)
 
-			if (not pcall(function()
+			if (not pcall(function() -- using pcall as try catch 
 				client:publish(message[1], message[2], message[3], message[4], function ()
 					onMessageSuccess(message[1], message[2])
 					send()

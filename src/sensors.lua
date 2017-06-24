@@ -36,6 +36,7 @@ local initSensors = function (pins, topics, publish)
 	end)
 end
 
+-- initialize simulation of sensors
 local initSimulation = function (pins, topics, publish)
 	print("Simulating sensors data!")
 	local sensorsInterval = 60000
@@ -63,6 +64,7 @@ local initSimulation = function (pins, topics, publish)
 		 end
 	end)
 
+	-- simulating smoke sensor
 	global.tmr.alarm(4, sensorsInterval, 1, function ()
 		local smokeGasConcentration = math.floor(math.random() * 100)
 		publish(topics.gas, smokeGasConcentration, nil, 1)
