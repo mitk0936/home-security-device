@@ -7,13 +7,12 @@ local initSensors = function (pins, topics, publish)
 	global.gpio.trig(pins.motion, "both", function (motionValue)
 		if (motionValue == 1) then
 			print('Motion is detected!')
+			publish(topics.motion, motionValue, nil, motionValue)
 		end
-
-		publish(topics.motion, motionValue, nil, motionValue) 
 	end)
 
 	-- init humidity and temperature sensor (DHT)
-	global.tmr.alarm(2, 30000, 1, function()
+	global.tmr.alarm(2, 10000, 1, function()
 		local status, temp, humi = dht.read(pins.dht)
 		print(temp, humi)
 		
@@ -30,8 +29,8 @@ local initSensors = function (pins, topics, publish)
 	end)
 
 	-- init gas sensor (MQ-2)
-	global.tmr.alarm(3, 4000, 1, function ()
-		local smokeValue = math.floor(tonumber(adc.read(pins.gas)) / 1023 * 100)
+	global.tmr.alarm(3, 5000, 1, function ()
+		local smokeValue = math.floor(tonumber(adc.read(pins.gas)) / 1023 * 100) - 15
 		publish(topics.gas, smokeValue, nil, 1)
 	end)
 end
@@ -86,6 +85,9 @@ return function (config, pins, topics, publish)
 		if (global.cjson.encode(lastSent[topic]) ~= global.cjson.encode(data)) then
 			publish(topic, data, error, 2, retain) -- publish the new message
 			lastSent[topic] = data -- save the new message
+
+			-- do not cache last motion message
+			lastSent[topics.motion] = nil
 		else
 			print('Refused to send data for '..topic..', due to bandwith optimizations.')
 		end
