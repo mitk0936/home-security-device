@@ -6,6 +6,7 @@
 	To clear the filesystem of the connected device.
 	
 	npm run upload
+	npm run upload prod
 	To take all the lua source code from the src/ folder and to upload it on the connected microcontroller.
 	
 	npm run config
@@ -75,7 +76,10 @@ cli.command('mkfs').action(function () {
 	Command for uploading the source files.
 	Usage: npm run upload
 */
-cli.command('upload').action(function () {
+cli.command('upload').action(function (cmd, env) {
+	const prod = process.argv.indexOf('prod') > -1
+	const compilePrefix = prod ? '--compile' : ''
+
 	findPort(function (port) {
 		var allFiles = ''
 
@@ -84,11 +88,12 @@ cli.command('upload').action(function () {
 		})
 
 		cd(nodemcuToolPath)
-		
-		exec(`node nodemcu-tool reset --port=${port}`, function () {
-			require('child_process')
-				.execSync(`node nodemcu-tool upload ${allFiles} --port=${port} ${options}`, { stdio: 'inherit' })
-		})
+
+		require('child_process')
+			.execSync(`node nodemcu-tool upload ${allFiles} ${compilePrefix} --port=${port} ${options}`, { stdio: 'inherit' })
+
+		require('child_process')
+			.execSync(`node nodemcu-tool upload ${pathToSrc}/init.lua --port=${port} ${options}`, { stdio: 'inherit' })
 	})
 })
 

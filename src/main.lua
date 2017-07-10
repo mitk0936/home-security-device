@@ -1,3 +1,6 @@
+require("publisher")
+print('after loading publisher heap is: ', node.heap())
+
 local pins = { motion = 5, dht = 2, positiveLed = 4, negativeLed = 3, gas = 0 }
 
 local topics = {
@@ -7,65 +10,44 @@ local topics = {
 	gas = "/gas"
 }
 
---	Function called to turn on/off notification LED's
--- isSuccess -> boolean parameter for positive/negative LED
-local turnLed = function (isSuccess)
-	global.gpio.write(pins.negativeLed, ( isSuccess and 0 or 1 ))
-	global.gpio.write(pins.positiveLed, ( isSuccess and 1 or 0 ))
-end
+main = coroutine.create(function ()
+	gpio.write(pins.negativeLed, 1)
+	gpio.write(pins.positiveLed, 0)
 
--- initMain
-return function ()
-	global.gpio.mode(pins.positiveLed, global.gpio.OUTPUT)
-	global.gpio.mode(pins.negativeLed, global.gpio.OUTPUT)
-	turnLed(false) -- by default turn on the negative led
+	local config = coroutine.yield()
 
-	-- configureMqtt
-	return function (config)
-		local createMqttClient = dofile("mqtt_client.lua")
-		local createMqttPublisher = createMqttClient(config, topics)
+	local mqttClient = mqtt.Client(config.device.user, 20, config.device.user, config.device.password)
+	local lwtMessage = cjson.encode({ value = 0 }) 	-- creating lwt message
+	mqttClient:lwt(config.device.user..topics.connectivity, lwtMessage, 2, 1)
 
-		-- connect function is returned from the mqtt module,
-		-- as result of created publisher
-		local connect = createMqttPublisher(
-			-- onMessageSent
-			function ()
-				turnLed(true)
-				collectgarbage()
-			end,
-			-- onMessageFailed
-			function ()
-				print("Мessage failed sending...")
-				turnLed(false)
+	print('after creating the mqtt client heap is: ', node.heap())
+	coroutine.resume(publisher, topics, config.device.user, mqttClient)
+
+	coroutine.yield() -- connected
+
+	gpio.write(pins.negativeLed, 0)
+	gpio.write(pins.positiveLed, 1)
+
+	mqttClient:on("offline", node.restart)
+
+	mqttClient:on("connect", function () -- on connection
+		coroutine.resume(publisher, topics.connectivity, 1, nil, 1)
+		
+		tmr.alarm(1, 3500, 1, function()
+			tmr.stop(1)
+			
+			if (config.device.simulation) then
+				require("simulation")(pins, topics, publisher)
+				print('after loading simulation heap is: ', node.heap())
+			else
+				require("sensors")(pins, topics, publisher)
+				print('after loading sensorsc heap is: ', node.heap())
 			end
-		)
 
-		-- callback for established connection
-		local connectSuccess = function (publish) 
-			turnLed(true)
-			-- telling the server that the device is online
-			publish(topics.connectivity, 1, nil, 2, 1)
+			-- free the memory from init.lua
+			syncTime, connectWifi, readConfig, config = nil
+		end)
+	end)
 
-			-- wait 3.5 seconds before the initialization of the sensors,
-			-- due to problems with heavy operations with cpu
-			-- when establishing secure connection (TLS)
-			global.tmr.alarm(1, 3500, 1, function()
-				global.tmr.stop(1)
-				-- initialization of the sensors.lua program
-				dofile("sensors.lua")(config, pins, topics, publish)
-			end)
-		end
-
-		-- callback for lost conenction
-		local connectionLost = function ()
-			turnLed(false)
-			global.tmr.delay(1000)
-			global.node.restart()
-		end
-
-		-- connectMQTT, last step called from the init.lua program
-		return function ()
-			connect(connectSuccess, connectionLost)
-		end
-	end
-end
+	mqttClient:connect(config.mqtt.address, config.mqtt.port, 1, 0)
+end)
