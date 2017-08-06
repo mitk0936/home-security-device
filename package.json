@@ -8,7 +8,8 @@
     "upload": "node build.js upload",
     "config": "node build.js config",
     "sign": "node build.js sign",
-    "start": "node build.js start"
+    "start": "node build.js start",
+    "flash": "node build.js flash"
   },
   "repository": {
     "type": "git",
@@ -30,6 +31,7 @@
   "devDependencies": {
     "commander": "^2.9.0",
     "nodemcu-tool": "^2.0.4",
+    "prompt": "^1.0.0",
     "serialport": "^4.0.7",
     "shelljs": "^0.7.6"
   }

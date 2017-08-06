@@ -1,16 +1,16 @@
 {
 	"wifi": {
-		"ssid": "********",
-		"password": "********"
+		"ssid": "SDV",
+		"password": "1133557799"
 	},
 	"device": {
-		"id": "********",
-		"user": "********",
-		"password": "********",
+		"id": "test-node-01",
+		"user": "test-node-01",
+		"password": "node-01",
 		"simulation": true
 	},
 	"mqtt": {
-		"address": "********",
-		"port": 0000
+		"address": "m21.cloudmqtt.com",
+		"port": 20247
 	}
 }
