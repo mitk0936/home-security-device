@@ -6,7 +6,7 @@ subscribe('configReady', function (config)
 	local lwtMessage = cjson.encode({ value = 0 }) 	-- creating lwt message
 	mqttClient:lwt(config.device.user..topics.connectivity, lwtMessage, 2, 1)
 
-	dispatch('mqttClientReady', mqttClient)
+	dispatch('mqttClientReady', mqttClient, true)
 
 	subscribe('timeSynced', function ()
 		gpio.write(pins.negativeLed, 0)

@@ -38,22 +38,17 @@ subscribe('configReady', function (config)
 		end
 
 		subscribe('publish', function (published)
-			topic  = published.topic
-			value  = published.value
-			error  = published.error
-			retain = published.retain
-
-			if (cjson.encode(lastSent[topic]) ~= cjson.encode(value)) then
-				lastSent[topic] = value -- save the new message
+			if (cjson.encode(lastSent[published.topic]) ~= cjson.encode(published.value)) then
+				lastSent[published.topic] = published.value -- save the new message
 
 				message = cjson.encode({
-					value = value,
+					value = published.value,
 					timestamp = rtctime.get(),
-					error = error
+					error = published.error
 				})
 
-				queue[#queue + 1] = { prefix..topic, message, qos, retain }
-				print('sending', prefix..topic, value, error, qos, retain)
+				queue[#queue + 1] = { prefix..published.topic, message, qos, published.retain }
+				print('sending', prefix..published.topic, published.value, error, qos, published.retain)
 				
 				if not isSending then
 					isSending = true
@@ -63,7 +58,7 @@ subscribe('configReady', function (config)
 				-- do not cache last motion message
 				lastSent[topics.motion] = nil
 			else
-				print('Refused to send data for '..topic..', due to bandwith optimizations.')
+				print('Refused to send data for '..published.topic..', due to bandwith optimizations.')
 			end
 		end)
 	end)

@@ -84,8 +84,8 @@ cli.command('mkfs').action(function () {
 	Command for uploading the source files.
 	Usage: npm run upload
 */
-cli.command('upload').action(function (cmd, env) {
-	const prod = process.argv.indexOf('prod') > -1
+cli.command('upload [prodFlag]').action(function (prodFlag) {
+	const prod = !!prodFlag && !!~prodFlag.indexOf('prod')
 	const compilePrefix = prod ? '--compile' : ''
 
 	findPort(function (port) {

@@ -15,10 +15,9 @@ subscribe = function (eventName, callback)
 			callbacks[eventName] = { callback }
 		end
 	end
-
 end
 
-dispatch = function (eventName, eventData)
+dispatch = function (eventName, eventData, isSingleEvent)
 	eventName = tostring(eventName)
 
 	lastData[eventName] = {
@@ -29,6 +28,10 @@ dispatch = function (eventName, eventData)
 	if (callbacks[eventName]) then
 		for index, callback in pairs(callbacks[eventName]) do
 			callback(eventData)
+		end
+
+		if (isSingleEvent) then
+			callbacks[eventName] = nil
 		end
 	end
 end

@@ -13,24 +13,25 @@ require('event_dispatcher')
 require("main")
 require("publisher")
 
-local function syncTime (onSuccess)
+syncTime = function ()
 	sntp.sync({
 		"0.bg.pool.ntp.org",
 		"1.bg.pool.ntp.org",
 		"0.pool.ntp.org"
-	}, onSuccess, function (err, name)
+	}, function ()
+		dispatch('timeSynced', nil, true)
+	end, function (err, name)
 		tmr.delay(2000)
-		syncTime(onSuccess)
+		syncTime()
 	end)
 end
 
-subscribe('wifiConnected', function (ip)
-	syncTime(function ()
-		dispatch('timeSynced')
-	end)
-end)
+if file.open("config.json") then
+	local config = cjson.decode(file.read())
+	file.close()
 
-subscribe('configReady', function (config)
+	dispatch('configReady', config, true)
+
 	wifi.setmode(wifi.STATION)
 	wifi.sta.config(config.wifi.ssid, config.wifi.password)
 	wifi.sta.connect()
@@ -41,15 +42,9 @@ subscribe('configReady', function (config)
 		else
 			tmr.stop(1)
 			print("Connected, IP is "..wifi.sta.getip())
-			dispatch('wifiConnected', wifi.sta.getip())
+			syncTime()
 		end
 	end)
-end)
-
-if file.open("config.json") then
-	local config = cjson.decode(file.read())
-	file.close()
-	dispatch('configReady', config)
 else
 	print("Cannot read config.json")
 	tmr.delay(20000)
