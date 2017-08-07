@@ -14,12 +14,18 @@
 
 	npm start
 	To start the lua terminal inside the console, reading prints from the connected hardware device.
+	
+	npm run flash
+	To flash the bin firmware to connected device (esptool.py is dependency)
 
 	npm run sign
 	To generate the key for crypting the data. Still not used. Will be done in the future.
 */
-const cli = require('commander');
-require('shelljs/global');
+const cli = require('commander')
+const prompt = require('prompt')
+prompt.start();
+
+require('shelljs/global')
 
 const nodemcuToolPath = 'node_modules/nodemcu-tool/bin'
 const pathToSrc = '../../..'
@@ -42,17 +48,19 @@ const findPort = function (onSuccess) {
 		}
 
 		ports.forEach(function(port) {
-			console.log('Found device on ', port.comName)
-			portsFound.push(port.comName)
+			if (port.serialNumber && port.manufacturer) {
+				console.log('Found device on ', port.comName)
+				portsFound.push(port.comName)
+			}
 		})
 
 		switch (portsFound.length) {
 			case 1:
 				onSuccess(portsFound[0])
-				break;
+				break
 			case 0:
 				throw 'No connected devices were found.'
-				break;
+				break
 			default:
 				throw 'More than one devices were found.'
 		}
@@ -64,7 +72,7 @@ const findPort = function (onSuccess) {
 	Usage: npm run mkfs
 */
 cli.command('mkfs').action(function () {
-	cd(nodemcuToolPath);
+	cd(nodemcuToolPath)
 
 	findPort(function (port) {
 		require('child_process')
@@ -123,6 +131,49 @@ cli.command('start').action(function () {
 			require('child_process')
 				.execSync(`node nodemcu-tool terminal --port=${port}`, { stdio: 'inherit' })
 		})
+	})
+})
+
+/*
+	Command for flashing the firmware,
+	accepts folder path and flashing mode as an arguements
+*/
+cli.command('flash [folder] [mode]').action(function (folder, mode) {
+	const folderPath = folder || 'firmware'
+	const flashMode = mode || 'qio'
+
+	console.log('Finding binaries to flash...')
+	
+	const binariesFound = ls(`${folderPath}/*.bin`)
+
+	if (binariesFound.length) {
+		console.log('Please type the index of the binary you want to flash')
+	}
+
+	binariesFound.forEach(function (file, index) {
+		console.log(`${index}) ${file}`)
+	})
+
+	prompt.get([{
+		name: 'binary-flash-index',
+		required: true
+	}], function (err, result) {
+		const selectedIndex = parseInt(result['binary-flash-index'])
+
+		if (binariesFound[selectedIndex]) {
+			console.log('Flashing: ' + binariesFound[selectedIndex], '...')
+
+			findPort(function (port) {
+				require('child_process')
+					.execSync(`esptool.py --port ${port} erase_flash`, { stdio: 'inherit' })
+
+				require('child_process')
+					.execSync(`esptool.py --port ${port} write_flash -fm ${flashMode} 0x00000 ${binariesFound[selectedIndex]}`, { stdio: 'inherit' })
+			})
+
+		} else {
+			console.error('Invalid binary index selected.')
+		}
 	})
 })
 
