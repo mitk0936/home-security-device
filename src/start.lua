@@ -1,6 +1,19 @@
 print('Start heap is: ', node.heap())
 
-syncTime = function (onSuccess)
+pins = { motion = 5, dht = 2, positiveLed = 4, negativeLed = 3, gas = 0 }
+
+topics = {
+	connectivity = "/connectivity",
+	motion = "/motion",
+	tempHum = "/temp-hum",
+	gas = "/gas"
+}
+
+require('event_dispatcher')
+require("main")
+require("publisher")
+
+local function syncTime (onSuccess)
 	sntp.sync({
 		"0.bg.pool.ntp.org",
 		"1.bg.pool.ntp.org",
@@ -11,7 +24,13 @@ syncTime = function (onSuccess)
 	end)
 end
 
-connectWifi = function (config, onConnected)
+subscribe('wifiConnected', function (ip)
+	syncTime(function ()
+		dispatch('timeSynced')
+	end)
+end)
+
+subscribe('configReady', function (config)
 	wifi.setmode(wifi.STATION)
 	wifi.sta.config(config.wifi.ssid, config.wifi.password)
 	wifi.sta.connect()
@@ -22,25 +41,15 @@ connectWifi = function (config, onConnected)
 		else
 			tmr.stop(1)
 			print("Connected, IP is "..wifi.sta.getip())
-			onConnected()
+			dispatch('wifiConnected', wifi.sta.getip())
 		end
 	end)
-end
-
-require("main")
-print('after loading main heap is: ', node.heap())
-coroutine.resume(main)
+end)
 
 if file.open("config.json") then
 	local config = cjson.decode(file.read())
 	file.close()
-	coroutine.resume(main, config)
-
-	connectWifi(config, function ()
-		syncTime(function ()
-			coroutine.resume(main)
-		end)
-	end)
+	dispatch('configReady', config)
 else
 	print("Cannot read config.json")
 	tmr.delay(20000)
