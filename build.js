@@ -48,7 +48,7 @@ const findPort = function (onSuccess) {
 		}
 
 		ports.forEach(function(port) {
-			if (port.serialNumber && port.manufacturer) {
+			if (port.serialNumber || port.manufacturer) {
 				console.log('Found device on ', port.comName)
 				portsFound.push(port.comName)
 			}
