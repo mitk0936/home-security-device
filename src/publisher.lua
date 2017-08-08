@@ -1,5 +1,4 @@
 subscribe('configReady', function (config)
-
 	local prefix = config.device.user
 	local queue = { }
 	local isSending = false
@@ -38,6 +37,8 @@ subscribe('configReady', function (config)
 		end
 
 		subscribe('publish', function (published)
+			collectgarbage()
+			
 			if (cjson.encode(lastSent[published.topic]) ~= cjson.encode(published.value)) then
 				lastSent[published.topic] = published.value -- save the new message
 

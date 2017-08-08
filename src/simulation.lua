@@ -6,7 +6,7 @@ local error
 local smokeGasConcentration
 
 -- simulate motion detection
-tmr.alarm(2, 10000, 1, function ()
+tmr.alarm(2, 14000, 1, function ()
 	motionValue = math.floor(math.random() * 2) -- 0 or 1
 	dispatch('publish', {
 		topic = topics.motion,
@@ -40,7 +40,7 @@ tmr.alarm(3, 10000, 1, function ()
 end)
 
 -- simulating smoke sensor
-tmr.alarm(4, 10000, 1, function ()
+tmr.alarm(4, 5000, 1, function ()
 	smokeGasConcentration = math.floor(math.random() * 100)
 	dispatch('publish', {
 		topic = topics.gas,
