@@ -1,17 +1,13 @@
 gpio.write(pins.negativeLed, 1)
 gpio.write(pins.positiveLed, 0)
 
-syncTime = function ()
+local syncTime = function (onError, onSuccess)
+	print('syncing time...')
 	sntp.sync({
 		'0.bg.pool.ntp.org',
 		'1.bg.pool.ntp.org',
 		'0.pool.ntp.org'
-	}, function ()
-		dispatch('timeSynced', nil, true)
-	end, function (err, name)
-		tmr.delay(2000)
-		syncTime()
-	end)
+	}, onSuccess, onError)
 end
 
 subscribe('configReady', function (config)
@@ -27,15 +23,20 @@ subscribe('configReady', function (config)
 	wifi.sta.config(config.wifi.ssid, config.wifi.password)
 	wifi.sta.connect()
 
-	tmr.alarm(1, 1500, 1, function()
+	local connect = tmr.create()
+	connect:register(1500, tmr.ALARM_AUTO, function (t)
 		if wifi.sta.getip() == nil then
 			print('Connecting...')
 		else
-			tmr.stop(1)
+			t:unregister()
 			print('Connected, IP is '..wifi.sta.getip())
-			syncTime()
+			syncTime(syncTime, function ()
+				dispatch('timeSynced', nil, true)
+			end)
 		end
 	end)
+
+	connect:start()
 
 	subscribe('timeSynced', function ()
 		gpio.write(pins.negativeLed, 0)
@@ -54,9 +55,9 @@ subscribe('configReady', function (config)
 				retain = 1
 			})
 			
-			tmr.alarm(1, 3500, 1, function()
-				tmr.stop(1)
-				
+			local waitAuth = tmr.create()
+
+			waitAuth:register(3500, tmr.ALARM_SINGLE, function()
 				if (config.device.simulation) then
 					require('simulation')
 					print('after loading simulation heap is: ', node.heap())
@@ -66,6 +67,7 @@ subscribe('configReady', function (config)
 				end
 			end)
 
+			waitAuth:start()
 			package.loaded['main'] = nil
 		end)
 

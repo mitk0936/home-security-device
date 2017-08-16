@@ -5,8 +5,8 @@ local dhtErrors = { dht.ERROR_CHECKSUM, dht.ERROR_TIMEOUT }
 local error
 local smokeGasConcentration
 
--- simulate motion detection
-tmr.alarm(2, 14000, 1, function ()
+local simulate = function ()
+	-- simulate PIR
 	motionValue = math.floor(math.random() * 2) -- 0 or 1
 	dispatch('publish', {
 		topic = topics.motion,
@@ -14,9 +14,8 @@ tmr.alarm(2, 14000, 1, function ()
 		error = nil,
 		retain = motionValue -- retain only when motion is detected
 	})
-end)
 
-tmr.alarm(3, 10000, 1, function ()
+	-- simulate DHT11
 	error = dhtErrors[math.floor(math.random() * 10)]
 
 	if (error) then
@@ -36,11 +35,9 @@ tmr.alarm(3, 10000, 1, function ()
 			error = nil,
 			retain = 1
 		})
-	 end
-end)
+	end
 
--- simulating smoke sensor
-tmr.alarm(4, 5000, 1, function ()
+	-- simulating smoke sensor
 	smokeGasConcentration = math.floor(math.random() * 100)
 	dispatch('publish', {
 		topic = topics.gas,
@@ -48,4 +45,8 @@ tmr.alarm(4, 5000, 1, function ()
 		error = nil,
 		retain = 1
 	})
-end)
+end
+
+local simulateInterval = tmr.create()
+simulateInterval:register(2000, tmr.ALARM_AUTO, simulate)
+simulateInterval:start()
