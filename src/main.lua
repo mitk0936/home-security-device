@@ -2,16 +2,12 @@ gpio.write(pins.negativeLed, 1)
 gpio.write(pins.positiveLed, 0)
 
 local syncTime = function (onError, onSuccess)
-	print('syncing time...')
-	sntp.sync({
-		'0.bg.pool.ntp.org',
-		'1.bg.pool.ntp.org',
-		'0.pool.ntp.org'
-	}, onSuccess, onError)
+	sntp.sync({ '0.bg.pool.ntp.org', '1.bg.pool.ntp.org', '0.pool.ntp.org' }, onSuccess, onError)
 end
 
 subscribe('configReady', function (config)
 	package.loaded['start'] = nil
+	package.loaded['init'] = nil
 
 	local mqttClient = mqtt.Client(config.device.user, 20, config.device.user, config.device.password)
 	local lwtMessage = cjson.encode({ value = 0 }) 	-- creating lwt message
@@ -28,25 +24,23 @@ subscribe('configReady', function (config)
 		if wifi.sta.getip() == nil then
 			print('Connecting...')
 		else
-			t:unregister()
 			print('Connected, IP is '..wifi.sta.getip())
+			t:unregister()
 			syncTime(syncTime, function ()
 				dispatch('timeSynced', nil, true)
 			end)
 		end
 	end)
-
 	connect:start()
 
 	subscribe('timeSynced', function ()
 		gpio.write(pins.negativeLed, 0)
 		gpio.write(pins.positiveLed, 1)
+		collectgarbage()
 
 		syncTime = nil
 
-
 		mqttClient:on('offline', node.restart)
-
 		mqttClient:on('connect', function () -- on connection
 			dispatch('publish', {
 				topic = topics.connectivity,
@@ -56,7 +50,6 @@ subscribe('configReady', function (config)
 			})
 			
 			local waitAuth = tmr.create()
-
 			waitAuth:register(3500, tmr.ALARM_SINGLE, function()
 				if (config.device.simulation) then
 					require('simulation')
@@ -65,10 +58,11 @@ subscribe('configReady', function (config)
 					require('sensors')
 					print('after loading sensors heap is: ', node.heap())
 				end
-			end)
 
+				package.loaded['main'] = nil
+				collectgarbage()
+			end)
 			waitAuth:start()
-			package.loaded['main'] = nil
 		end)
 
 		mqttClient:connect(config.mqtt.address, config.mqtt.port, 1, 0)

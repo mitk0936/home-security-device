@@ -66,7 +66,6 @@ const findPort = function (onSuccess) {
 		}
 	})
 }
-
 /*
 	Command for clearing the device file system.
 	Usage: npm run mkfs
@@ -102,6 +101,9 @@ cli.command('upload [prodFlag]').action(function (prodFlag) {
 
 		require('child_process')
 			.execSync(`node nodemcu-tool upload ${pathToSrc}/init.lua --port=${port} ${options}`, { stdio: 'inherit' })
+
+		require('child_process')
+			.execSync(`node nodemcu-tool fsinfo --port=${port}`, { stdio: 'inherit' })
 	})
 })
 
@@ -115,6 +117,9 @@ cli.command('config').action(function () {
 
 		require('child_process')
 			.execSync(`node nodemcu-tool upload ${pathToSrc}/src/config.json --port=${port} ${options}`, { stdio: 'inherit' })
+
+		require('child_process')
+			.execSync(`node nodemcu-tool fsinfo --port=${port}`, { stdio: 'inherit' })
 	})
 })
 

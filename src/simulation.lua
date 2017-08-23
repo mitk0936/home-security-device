@@ -1,9 +1,8 @@
-print("Simulating sensors data!")
+print('Simulating sensors data!')
 -- initialize simulation of sensors
 local motionValue
 local dhtErrors = { dht.ERROR_CHECKSUM, dht.ERROR_TIMEOUT }
 local error
-local smokeGasConcentration
 
 local simulate = function ()
 	-- simulate PIR
@@ -38,15 +37,14 @@ local simulate = function ()
 	end
 
 	-- simulating smoke sensor
-	smokeGasConcentration = math.floor(math.random() * 100)
 	dispatch('publish', {
 		topic = topics.gas,
-		value = smokeGasConcentration,
+		value = math.floor(math.random() * 100),
 		error = nil,
 		retain = 1
 	})
 end
 
 local simulateInterval = tmr.create()
-simulateInterval:register(2000, tmr.ALARM_AUTO, simulate)
+simulateInterval:register(10000, tmr.ALARM_AUTO, simulate)
 simulateInterval:start()

@@ -4,7 +4,7 @@ require('event_dispatcher')
 require('main')
 require('publisher')
 
-if file.open('config.json') then
+if (file.open('config.json')) then
 	local config = cjson.decode(file.read())
 	file.close()
 	dispatch('configReady', config, true)

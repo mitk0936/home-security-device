@@ -1,9 +1,7 @@
 local callbacks = { }
 local lastData = { }
-
 subscribe = function (eventName, callback)
 	eventName = tostring(eventName)
-
 	if (type(callback) == 'function') then
 		if (lastData[eventName] and lastData[eventName].called) then
 			callback(lastData[eventName].data)
@@ -15,11 +13,11 @@ subscribe = function (eventName, callback)
 			callbacks[eventName] = { callback }
 		end
 	end
+	eventName = nil
 end
 
 dispatch = function (eventName, eventData, isSingleEvent)
 	eventName = tostring(eventName)
-
 	lastData[eventName] = {
 		called = true,
 		data = eventData
@@ -34,4 +32,5 @@ dispatch = function (eventName, eventData, isSingleEvent)
 			callbacks[eventName] = nil
 		end
 	end
+	eventName = nil
 end
