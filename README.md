@@ -6,13 +6,6 @@
 	<img src="sketch/sketch.png" width="450"/>
 </p>
 
-# Building with node.js
-	npm install
-
-	npm run build (for uploading all lua source)
-	npm run config (for uploading the config.json)
-	npm start (for starting the nodemcu terminal)
-
 # Binary with firmware:
 	firmware/nodemcu-master-13-modules-2017-03-27-14-20-50-float.bin
 
