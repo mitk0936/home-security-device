@@ -1,0 +1,16 @@
+{
+  "wifi": {
+    "ssid": "___",
+    "pwd": "secretpass__9"
+  },
+  "device": {
+    "id": "test-node-01",
+    "user": "test-node-01",
+    "password": "node-01",
+    "simulation": true
+  },
+  "mqtt": {
+    "address": "m21.cloudmqtt.com",
+    "port": 10247
+  }
+}
