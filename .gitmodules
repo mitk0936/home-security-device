@@ -1,0 +1,3 @@
+[submodule "src/lib/nodemcu-esp8266-helpers"]
+	path = src/lib/nodemcu-esp8266-helpers
+	url = git@github.com:mitk0936/nodemcu-esp8266-helpers.git

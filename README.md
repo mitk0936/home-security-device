@@ -3,7 +3,7 @@
 <h2>Wiring:<h2>
 
 <p align="center">
-	<img src="sketch/sketch.png" width="450"/>
+	<img src="sketch/v20_bb.png" width="450"/>
 </p>
 
 # Binary with firmware:
@@ -17,3 +17,6 @@
 
 # Fritzing sketch:
 	sketch.fzz
+
+Crashes, because old firmware from 23.02.2019 has issues with ssl
+new firmware has problems with nodemcu-tool, because changed interface of node.info
