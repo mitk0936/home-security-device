@@ -1,4 +1,4 @@
-local pins = { motion = 5, dht = 1, positiveLed = 4, negativeLed = 3, gas = 0 }
+local pins = { motion = 1, dht = 4, positiveLed = 2, negativeLed = 1, gas = 0 }
 
 local topics = {
   connectivity = '/connectivity',
