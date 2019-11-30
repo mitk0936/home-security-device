@@ -1,4 +1,10 @@
-local pins = { motion = 1, dht = 4, positiveLed = 2, negativeLed = 1, gas = 0 }
+local pins = {
+  motion = 1,
+  dht = 4,
+  positiveLed = 3,
+  negativeLed = 2,
+  gas = 0
+};
 
 local topics = {
   connectivity = '/connectivity',
@@ -7,7 +13,13 @@ local topics = {
   gas = '/gas'
 };
 
+local intervals = {
+  temp_hum = 60000,
+  gas = 15000
+};
+
 return {
   pins = pins,
-  topics = topics
+  topics = topics,
+  intervals = intervals
 };

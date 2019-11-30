@@ -12,13 +12,13 @@ local start = function (mqtt_client, prefix)
   send = function ()
     if (#queue > 0) then
       local message = table.remove(queue, 1);
-      print('QUEUE SIZE', #queue);
+      print('Message queue size', #queue);
 
       if (not pcall(mqtt_pub, message, function ()
-        print('message sent');
+        print('Message is sent to: ', message.topic);
         send();
       end)) then
-        print('Failed to send: ', message.topic, message.text, message.qos, message.retain);
+        print('Failed to send: ', message.topic, message.text);
         queue[#queue + 1] = message;
         send();
       end
@@ -61,6 +61,4 @@ local start = function (mqtt_client, prefix)
   end
 end
 
-return {
-  start = start
-};
+return start;

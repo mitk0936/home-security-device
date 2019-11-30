@@ -17,14 +17,13 @@ local start = function (constants, publish)
       publish({
         topic = constants.topics.motion,
         value = motion_value,
-        error = nil,
-        retain = motion_value -- retain only when motion is detected
+        error = nil
       });
     end
   end)
 
   -- init humidity and temperature sensor (DHT)
-  tmr.alarm(2, 4000, 1, function()
+  tmr.alarm(2, constants.intervals.temp_hum, 1, function()
     status, temp, humi = dht.read(constants.pins.dht)
     
     if status == dht.OK then
@@ -34,35 +33,33 @@ local start = function (constants, publish)
           temperature = temp,
           humidity = humi
         },
-        error = nil,
-        retain = 1
+        error = nil
       })
     elseif status == dht.ERROR_CHECKSUM then
       publish({
         topic = constants.topics.temp_hum,
         value = nil,
-        error = 'DHT_ERROR_CHECKSUM',
-        retain = 1
+        error = 'DHT_ERROR_CHECKSUM'
       });
     elseif status == dht.ERROR_TIMEOUT then
       publish({
         topic = constants.topics.temp_hum,
         value = nil,
-        error = 'DHT_ERROR_TIMEOUT',
-        retain = 1
+        error = 'DHT_ERROR_TIMEOUT'
       });
     end
   end)
 
   -- init gas sensor (MQ-2)
-  tmr.alarm(3, 3000, 1, function ()
-    smoke_value = math.floor(tonumber((adc.read(constants.pins.gas)) / 1023) * 100);
+  tmr.alarm(3, constants.intervals.gas, 1, function ()
+    smoke_value = math.floor(
+      tonumber(adc.read(constants.pins.gas) / 1024) * 100
+    );
 
     publish({
       topic = constants.topics.gas,
       value = smoke_value,
-      error = nil,
-      retain = 1
+      error = nil
     });
   end)
 end

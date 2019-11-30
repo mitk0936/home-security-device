@@ -1,12 +1,11 @@
-wifi_helper = require('lib/wifi');
-
+local wifi_helper = require('lib/wifi');
 local file_helper = require('lib/file');
 local sntp_helper = require('lib/sntp');
+
 local constants = require('app/constants');
+local init_main = require('app/main');
 
-local init = require('app/main');
-
-local ok, config = file_helper.read_json_file('static/config.json');
+local config_is_ok, config = file_helper.read_json_file('static/config.json');
 
 --[[
   Crashes, because: 
@@ -17,8 +16,8 @@ local ok, config = file_helper.read_json_file('static/config.json');
     WORKS WITHOUT SSL FOR NOW -> TODO: change port in config.json
 ]]
 
-if (ok) then
-  local start = init(config, constants);
+if (config_is_ok) then
+  local start_main = init_main(config, constants);
 
   wifi_helper.wifi_config_sta(config.wifi.ssid, config.wifi.pwd);
 
@@ -31,7 +30,7 @@ if (ok) then
       sntp_helper.sync_time(
         { '0.bg.pool.ntp.org', '1.bg.pool.ntp.org', '0.pool.ntp.org' },
         function()
-          start();
+          start_main();
         end
       );
     end
