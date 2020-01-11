@@ -19,7 +19,7 @@ local config_is_ok, config = file_helper.read_json_file('static/config.json');
 if (config_is_ok) then
   local start_main = init_main(config, constants);
 
-  wifi_helper.wifi_config_sta(config.wifi.ssid, config.wifi.pwd);
+  wifi_helper.wifi_config_sta(config.wifi.ssid, config.wifi.pwd, wifi.STATION);
 
   wifi_helper.wifi_connect(
     config.wifi.ssid,

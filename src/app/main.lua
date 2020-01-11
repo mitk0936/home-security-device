@@ -1,5 +1,21 @@
+local init_leds = function(constants)
+  gpio.mode(constants.pins.positiveLed, gpio.OUTPUT);
+  gpio.mode(constants.pins.negativeLed, gpio.OUTPUT);
+  
+  gpio.write(constants.pins.positiveLed, 0);
+  gpio.write(constants.pins.negativeLed, 1);
+
+  return {
+    positive = function ()
+      gpio.write(constants.pins.positiveLed, 1);
+      gpio.write(constants.pins.negativeLed, 0);
+    end
+  };
+end
+
 local init = function (config, constants)
   local mqtt_client = mqtt.Client(config.device.user, 20, config.device.user, config.device.password);
+  local leds = init_leds(constants);
 
   local start = function ()
     mqtt_client:lwt(config.device.user..constants.topics.connectivity, sjson.encode({ value = 0 }), 2, 1);
@@ -10,6 +26,8 @@ local init = function (config, constants)
     mqtt_client:on('connect', function ()
       print('MQTT connected');
       print('heap: ', node.heap());
+
+      leds.positive();
 
       local startMqttPublisher = require('app/publisher');
       local publish = startMqttPublisher(mqtt_client, config.device.user);
@@ -34,7 +52,6 @@ local init = function (config, constants)
           optimize_publish
         );
       end);
-
     end)
 
     print('Connecting to mqtt broker');

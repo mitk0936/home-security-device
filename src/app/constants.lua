@@ -1,8 +1,8 @@
 local pins = {
   motion = 1,
   dht = 4,
-  positiveLed = 3,
-  negativeLed = 2,
+  positiveLed = 2,
+  negativeLed = 3,
   gas = 0
 };
 
